@@ -30,7 +30,7 @@ class OthersCheckinScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Center(
                 child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 600),
+                    constraints: const BoxConstraints(maxWidth: double.infinity),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -79,10 +79,11 @@ class DashboardController extends GetxController {
     try {
       isStatsLoading(true);
       statsError('');
-      final stats = await _apiService.getVisitorStatsSeries(
+      final stats = await _apiService.getStatsSeries(
           companyId, selectedStatRange.value);
       final Map<String, int> formattedStats = {
-        for (var stat in stats) stat.date: stat.count
+        for (var stat in stats)
+          stat['date']: (stat['count'] as num).toInt()
       };
       visitorStats.assignAll(formattedStats);
     } catch (e) {

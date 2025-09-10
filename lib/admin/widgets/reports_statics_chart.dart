@@ -96,32 +96,39 @@ class ReportsStaticsChart extends GetView<ReportsStaticsChartController> {
                           children: [
                             CustomPaint(
                               painter: VisitorChartPainter(
-                                hoveredMonth: controller.hoveredMonth.value,
+                                hoveredIndex: controller.hoveredIndex.value,
                                 values: controller.chartData[
                                     controller.selectedFilter.value]!,
+                                labels: controller.chartLabels[
+                                    controller.selectedFilter.value]!,
+                                individualValues: controller
+                                    .chartIndividualCounts[
+                                        controller.selectedFilter.value]!
+                                    .toList(),
                                 isDarkMode: isDarkMode,
                               ),
                               size: Size.infinite,
                             ),
                             Row(
-                              children: List.generate(controller.months.length,
+                              children: List.generate(
+                                  controller.chartLabels[controller.selectedFilter.value]!.length,
                                   (index) {
                                 return Expanded(
                                   child: MouseRegion(
-                                    onEnter: (_) => controller
-                                        .hoveredMonth.value = controller
-                                            .months[index],
+                                    onEnter: (_) =>
+                                        controller.hoveredIndex.value = index,
                                     onExit: (_) =>
-                                        controller.hoveredMonth.value = null,
+                                        controller.hoveredIndex.value = null,
                                     child: GestureDetector(
                                       onTap: () {
-                                        if (controller.hoveredMonth.value ==
-                                            controller.months[index]) {
+                                        if (controller.hoveredIndex.value ==
+                                            index) {
                                           controller.navigateToReportsScreen(
-                                              controller.months[index]);
+                                              controller.chartLabels[controller
+                                                  .selectedFilter
+                                                  .value]![index]);
                                         } else {
-                                          controller.hoveredMonth.value =
-                                              controller.months[index];
+                                          controller.hoveredIndex.value = index;
                                         }
                                       },
                                       child:
@@ -143,15 +150,17 @@ class ReportsStaticsChart extends GetView<ReportsStaticsChartController> {
 
 // ------------------- Painter -------------------
 class VisitorChartPainter extends CustomPainter {
-  final List<String> months = ["July", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  final String value = "8.65K";
-  final String? hoveredMonth;
+  final int? hoveredIndex;
   final List<double> values; // 0–1 scale
+  final List<String> labels;
+  final List<String> individualValues;
   final bool isDarkMode;
 
   VisitorChartPainter({
-    required this.hoveredMonth,
+    required this.hoveredIndex,
     required this.values,
+    required this.labels,
+    required this.individualValues,
     required this.isDarkMode,
   });
 
@@ -164,28 +173,34 @@ class VisitorChartPainter extends CustomPainter {
     final Path path = Path();
     path.moveTo(0, size.height);
 
-    double columnWidth = size.width / (values.length - 1);
+    if (values.length == 1) {
+      // Draw a single bar with a rising diagonal line
+      double dy = size.height * (1 - values[0]);
+      path.lineTo(size.width, dy);
+      path.lineTo(size.width, size.height);
+    } else {
+      double columnWidth = size.width / (values.length - 1);
 
-    for (int i = 0; i < values.length; i++) {
-      double dx = columnWidth * i;
-      double dy = size.height * (1 - values[i]);
+      for (int i = 0; i < values.length; i++) {
+        double dx = columnWidth * i;
+        double dy = size.height * (1 - values[i]);
 
-      if (i == 0) {
-        path.lineTo(dx, dy);
-      } else {
-        double prevDx = columnWidth * (i - 1);
-        double prevDy = size.height * (1 - values[i - 1]);
+        if (i == 0) {
+          path.lineTo(dx, dy);
+        } else {
+          double prevDx = columnWidth * (i - 1);
+          double prevDy = size.height * (1 - values[i - 1]);
 
-        path.quadraticBezierTo(
-          (prevDx + dx) / 2,
-          (prevDy + dy) / 2,
-          dx,
-          dy,
-        );
+          path.quadraticBezierTo(
+            (prevDx + dx) / 2,
+            (prevDy + dy) / 2,
+            dx,
+            dy,
+          );
+        }
       }
+      path.lineTo(size.width, size.height);
     }
-
-    path.lineTo(size.width, size.height);
     path.close();
     canvas.drawPath(path, paint);
 
@@ -193,8 +208,8 @@ class VisitorChartPainter extends CustomPainter {
     final dividerPaint = Paint()
       ..color = isDarkMode ? Colors.black : Colors.white
       ..strokeWidth = 2.5;
-    double columnWidth2 = size.width / months.length;
-    for (int i = 1; i < months.length; i++) {
+    double columnWidth2 = size.width / labels.length;
+    for (int i = 1; i < labels.length; i++) {
       double dx = columnWidth2 * i;
       canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), dividerPaint);
     }
@@ -205,10 +220,10 @@ class VisitorChartPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
 
-    for (int i = 0; i < months.length; i++) {
+    for (int i = 0; i < labels.length; i++) {
       double xCenter = columnWidth2 * i + columnWidth2 / 2;
 
-      if (months[i] == hoveredMonth) {
+      if (i == hoveredIndex) {
         Rect highlightRect = Rect.fromLTWH(
           columnWidth2 * i,
           0,
@@ -224,9 +239,9 @@ class VisitorChartPainter extends CustomPainter {
       }
 
       textPainter.text = TextSpan(
-        text: months[i],
+        text: labels[i],
         style: TextStyle(
-          color: months[i] == hoveredMonth
+          color: i == hoveredIndex
               ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
               : isDarkMode
                   ? Colors.white
@@ -239,9 +254,9 @@ class VisitorChartPainter extends CustomPainter {
       textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 10));
 
       textPainter.text = TextSpan(
-        text: value,
+        text: individualValues[i],
         style: GoogleFonts.lexend(
-          color: months[i] == hoveredMonth
+          color: i == hoveredIndex
               ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
               : isDarkMode
                   ? Colors.white
@@ -253,7 +268,7 @@ class VisitorChartPainter extends CustomPainter {
       textPainter.layout(maxWidth: columnWidth2);
       textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 30));
 
-      if (months[i] == hoveredMonth) {
+      if (i == hoveredIndex) {
         textPainter.text = TextSpan(
           text: "Details →",
           style: GoogleFonts.lexend(
@@ -268,7 +283,7 @@ class VisitorChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant VisitorChartPainter oldDelegate) {
-    return oldDelegate.hoveredMonth != hoveredMonth ||
+    return oldDelegate.hoveredIndex != hoveredIndex ||
         oldDelegate.values != values;
   }
 }

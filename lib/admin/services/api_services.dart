@@ -286,41 +286,6 @@ class ApiService {
     }
   }
 
-  /// Get visitor statistics series for charts
-  /// GET /api/admin/:companyId/stats/series/:range
-  /// range can be 'day', 'week', or 'month'
-  Future<List<VisitorStatistic>> getVisitorStatsSeries(
-      String companyId, String range) async {
-    try {
-      String apiRange;
-      switch (range) {
-        case 'This Week':
-          apiRange = 'week';
-          break;
-        case 'This Month':
-          apiRange = 'month';
-          break;
-        case 'This Year':
-          apiRange = 'year';
-          break;
-        case 'All':
-          apiRange = 'all';
-          break;
-        default:
-          apiRange = 'week';
-      }
-      final response = await _get('/admin/$companyId/stats/series/$apiRange');
-
-      if (response['success'] == true && response['data'] != null) {
-        List<dynamic> data = response['data'];
-        return data.map((item) => VisitorStatistic.fromJson(item)).toList();
-      } else {
-        throw Exception('Failed to fetch visitor statistics');
-      }
-    } catch (e) {
-      throw Exception('Error fetching visitor statistics: $e');
-    }
-  }
 
   /// Get visitor types statistics for pie chart
   /// GET /api/admin/:companyId/stats/purpose
@@ -499,19 +464,37 @@ class ApiService {
     }
   }
 
-  Future<List<double>> getStatsSeries(String value) async {
-    await Future.delayed(const Duration(seconds: 1));
-    switch (value) {
-      case 'monthly':
-        return [0.2, 0.25, 0.35, 0.3, 0.32, 0.6];
-      case 'weekly':
-        return [0.4, 0.45, 0.42, 0.55, 0.5, 0.65];
-      case 'yearly':
-        return [0.1, 0.3, 0.5, 0.4, 0.6, 0.9];
-      case 'daily':
-        return [0.5, 0.6, 0.55, 0.58, 0.65, 0.7];
-      default:
-        return [];
+  Future<List<Map<String, dynamic>>> getStatsSeries(
+      String companyId, String range) async {
+    try {
+      String apiRange;
+      switch (range) {
+        case 'monthly':
+          apiRange = 'month';
+          break;
+        case 'weekly':
+          apiRange = 'week';
+          break;
+        case 'yearly':
+          apiRange = 'month'; // Default to month for yearly
+          break;
+        case 'daily':
+          apiRange = 'day';
+          break;
+        default:
+          apiRange = 'week'; // Default to week
+      }
+
+      final response =
+          await _get('/admin/$companyId/stats/series/$apiRange');
+      if (response['success'] == true && response['data'] != null) {
+        return List<Map<String, dynamic>>.from(response['data']);
+      } else {
+        throw Exception(
+            'Failed to fetch stats series: ${response['message'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching stats series: $e');
     }
   }
 }
