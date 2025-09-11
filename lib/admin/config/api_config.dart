@@ -1,3 +1,5 @@
+import 'package:synctrackr/admin/config/session_manager.dart';
+
 class ApiConfig {
   // API Configuration
   static const String baseUrl =
@@ -15,7 +17,9 @@ class ApiConfig {
   }
 
   // Default company ID - This should be set from authentication/login
-  static String defaultCompanyId = '1';
+  static Future<String> getCompanyId() async {
+    return await SessionManager.getCompanyId() ?? '1';
+  }
 
   // API endpoints
   static const String liveFeedEndpoint = '/admin/{companyId}/live-feed';

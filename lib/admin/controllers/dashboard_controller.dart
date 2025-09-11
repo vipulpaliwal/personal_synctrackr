@@ -8,7 +8,7 @@ import 'package:synctrackr/admin/services/api_services.dart';
 class DashboardController extends GetxController {
   final ApiService _apiService = ApiService();
   // Company ID - use configurable default (should be set at login)
-  final String companyId = ApiConfig.defaultCompanyId;
+  late final String companyId;
 
   // Live Feed
   var liveFeedItems = <Map<String, String>>[].obs;
@@ -42,6 +42,11 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    companyId = await ApiConfig.getCompanyId();
     fetchAllData();
 
     // Refresh data periodically

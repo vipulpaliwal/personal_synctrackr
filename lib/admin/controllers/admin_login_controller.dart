@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:synctrackr/admin/config/session_manager.dart';
 import 'package:synctrackr/admin/screens/main_screen.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 
@@ -60,6 +61,9 @@ Future<void> login() async {
     if (response.containsKey('token')) {
       // Success
       await _secureStorage.write(key: 'authToken', value: response['token']);
+      if (response.containsKey('companyId')) {
+        await SessionManager.saveCompanyId(response['companyId'].toString());
+      }
       Get.offAll(() => MainScreen());
     } else if (response.containsKey('statusCode')) {
       // Handle specific error responses from the server

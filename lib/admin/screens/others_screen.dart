@@ -345,6 +345,7 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/others_controller.dart';
 import 'package:synctrackr/admin/screens/others_checkIN_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
+import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/utils/responsive.dart';
 import 'package:synctrackr/admin/widgets/bulk_pass_section.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
@@ -623,7 +624,8 @@ class _OthersScreenState extends State<OthersScreen> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.cloud_upload_outlined,
+                  ImageIcon(
+                    AssetImage(AllImages.bulkUploadIcon),
                       color: Colors.blue, size: 40),
                   SizedBox(width: 8),
                   Text.rich(

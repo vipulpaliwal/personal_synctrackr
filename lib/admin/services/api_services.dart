@@ -234,7 +234,7 @@ class ApiService {
           .timeout(ApiConfig.requestTimeout);
 
       final data = json.decode(response.body);
-      
+
       if (response.statusCode == 200) {
         // Success - return the response data
         return data;
@@ -321,7 +321,6 @@ class ApiService {
       throw Exception('Error fetching today\'s check-outs count: $e');
     }
   }
-
 
   /// Get visitor types statistics for pie chart
   /// GET /api/admin/:companyId/stats/purpose
@@ -500,17 +499,20 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> addStaff(Map<String, dynamic> data, String token) async {
+  Future<Map<String, dynamic>> addStaff(
+      Map<String, dynamic> data, String token) async {
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.apiBaseUrl}/auth/staff'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(data),
-      ).timeout(ApiConfig.requestTimeout);
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiBaseUrl}/auth/staff'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: json.encode(data),
+          )
+          .timeout(ApiConfig.requestTimeout);
 
       final responseData = json.decode(response.body);
 
@@ -545,8 +547,7 @@ class ApiService {
           apiRange = 'week'; // Default to week
       }
 
-      final response =
-          await _get('/admin/$companyId/stats/series/$apiRange');
+      final response = await _get('/admin/$companyId/stats/series/$apiRange');
       if (response['success'] == true && response['data'] != null) {
         return List<Map<String, dynamic>>.from(response['data']);
       } else {
@@ -556,5 +557,26 @@ class ApiService {
     } catch (e) {
       throw Exception('Error fetching stats series: $e');
     }
+  }
+
+  Future<http.Response> getHeadDetails(String headId,
+      {String? companyId}) async {
+    final companyIdToUse = companyId ?? await ApiConfig.getCompanyId();
+    final response = await http.get(
+      Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyIdToUse/heads/$headId'),
+      headers: _headers,
+    );
+    return response;
+  }
+
+  Future<http.Response> updateHead(String headId, Map<String, dynamic> data,
+      {String? companyId}) async {
+    final companyIdToUse = companyId ?? await ApiConfig.getCompanyId();
+    final response = await http.patch(
+      Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyIdToUse/heads/$headId'),
+      headers: _headers,
+      body: json.encode(data),
+    );
+    return response;
   }
 }

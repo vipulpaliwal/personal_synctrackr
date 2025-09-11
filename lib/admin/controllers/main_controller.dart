@@ -10,12 +10,12 @@ import 'package:synctrackr/admin/screens/others_epass_generator_screen.dart';
 import 'package:synctrackr/admin/screens/others_screen.dart';
 import 'package:synctrackr/admin/screens/reports_screen.dart';
 import 'package:synctrackr/admin/screens/reports_view_screen.dart';
-import 'package:synctrackr/admin/screens/setting_account_screen.dart';
 import 'package:synctrackr/admin/screens/setting_screen.dart';
 import 'package:synctrackr/admin/screens/setting_upgrade_plan_screen.dart';
 import 'package:synctrackr/admin/screens/visitor_details.dart';
 import 'package:synctrackr/admin/screens/visitor_head_add_person.dart';
 import 'package:synctrackr/admin/screens/visitor_head_details_screen.dart';
+import 'package:synctrackr/admin/screens/visitor_head_update_person.dart';
 import 'package:synctrackr/admin/screens/visitors.dart';
 import 'package:synctrackr/admin/screens/visitors_heads_screen.dart';
 import 'package:synctrackr/admin/utils/responsive.dart';
@@ -185,6 +185,7 @@ class MainController extends GetxController {
         OthersEpassGenerator(),
         UpgradePlan(),
         CheckoutScreen(),
+        _buildVisitorHeadUpdatePerson()
       ];
 
   void selectScreen(int index) {
@@ -239,6 +240,40 @@ class MainController extends GetxController {
 
   void checkoutScreen() {
     _selectedIndex.value = 14;
+  }
+
+  void visitorHeadUpdatePerson(Employee employee) {
+    _selectedEmployee.value = employee;
+    _selectedIndex.value = 15;
+  }
+
+  Widget _buildVisitorHeadUpdatePerson() {
+    final headId = _selectedEmployee.value?.id;
+    if (headId == null || headId.isEmpty || headId == '0') {
+      return Container(
+        padding: EdgeInsets.all(20),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.person_off, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'No Employee Selected',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please select an employee from the visitor heads list to update their profile.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return VisitorHeadUpdatePerson(headId: headId);
   }
 
   void openDrawer() {

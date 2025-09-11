@@ -18,13 +18,17 @@ class VisitorsHeadsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchHeads();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await fetchHeads();
   }
 
   Future<void> fetchHeads() async {
     try {
       isLoading(true);
-      final companyId = ApiConfig.defaultCompanyId;
+      final companyId = await ApiConfig.getCompanyId();
       final result = await _apiService.getHeads(companyId);
 
       totalHeads.value = result['totalHeads'];

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Employee {
+  final String id;
   final String name;
   final String department;
   final String position;
@@ -11,6 +12,7 @@ class Employee {
   final Color statusColor;
 
   Employee({
+    required this.id,
     required this.name,
     required this.department,
     required this.position,
@@ -23,6 +25,7 @@ class Employee {
 
   factory Employee.fromJson(Map<String, dynamic> json) {
     return Employee(
+      id: json['id'].toString(),
       name: json['name'] ?? 'Unknown',
       department: json['dept'] ?? 'Unknown',
       position: json['designation'] ?? 'Unknown',

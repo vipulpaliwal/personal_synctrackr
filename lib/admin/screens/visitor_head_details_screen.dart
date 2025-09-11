@@ -113,7 +113,11 @@ class VisitorHeadDetailsScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.bottomRight,
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (employee != null) {
+                      Get.find<MainController>().visitorHeadUpdatePerson(employee);
+                    }
+                  },
                   icon: const Icon(Icons.edit, size: 16),
                   label: const Text('Update Profile'),
                   style: ElevatedButton.styleFrom(

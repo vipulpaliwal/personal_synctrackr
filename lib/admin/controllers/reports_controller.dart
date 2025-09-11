@@ -5,7 +5,7 @@ import 'package:synctrackr/admin/services/api_services.dart';
 
 class ReportsController extends GetxController {
   final ApiService _apiService = ApiService();
-  final String companyId = ApiConfig.defaultCompanyId;
+  late String companyId;
   final List<String> months = ["July", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var hoveredMonth = RxnString();
   var selectedFilter = "monthly".obs;
@@ -24,6 +24,11 @@ class ReportsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    companyId = await ApiConfig.getCompanyId();
     fetchChartData();
     selectedFilter.listen((_) => fetchChartData());
   }

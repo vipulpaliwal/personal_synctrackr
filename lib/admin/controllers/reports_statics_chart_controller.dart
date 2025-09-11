@@ -15,7 +15,8 @@ class ReportsStaticsChartController extends GetxController {
       return n.toStringAsFixed(0);
     }
   }
-  final String companyId = ApiConfig.defaultCompanyId;
+
+  late String companyId;
   final RxList<String> months = <String>[].obs;
   var hoveredIndex = RxnInt();
   var selectedFilter = "monthly".obs;
@@ -55,6 +56,11 @@ class ReportsStaticsChartController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    companyId = await ApiConfig.getCompanyId();
     fetchChartData();
     selectedFilter.listen((_) => fetchChartData());
   }

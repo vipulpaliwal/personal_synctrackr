@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
+import 'package:synctrackr/admin/config/api_config.dart';
 
 class EmployeeListController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -26,7 +27,8 @@ class EmployeeListController extends GetxController {
   void fetchVisitors() async {
     try {
       isLoading(true);
-      var visitors = await _apiService.getVisitors('1');
+      final companyId = await ApiConfig.getCompanyId();
+      var visitors = await _apiService.getVisitors(companyId);
       allResults.assignAll(visitors);
       filteredResults.assignAll(allResults);
     } catch (e) {
@@ -51,11 +53,8 @@ class EmployeeListController extends GetxController {
   List<Visitor> getCurrentPageResults() {
     final startIndex = (currentPage.value - 1) * _resultsPerPage;
     final endIndex = startIndex + _resultsPerPage;
-    return filteredResults.sublist(
-        startIndex,
-        endIndex > filteredResults.length
-            ? filteredResults.length
-            : endIndex);
+    return filteredResults.sublist(startIndex,
+        endIndex > filteredResults.length ? filteredResults.length : endIndex);
   }
 
   void nextPage() {
