@@ -216,6 +216,42 @@ class ApiService {
     throw Exception('Max retries exceeded');
   }
 
+  // ==================== AUTHENTICATION API ====================
+
+  /// Login a user
+  /// POST /api/auth/login
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiBaseUrl}/auth/login'),
+            headers: _headers,
+            body: json.encode({
+              'email': email,
+              'password': password,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+      
+      if (response.statusCode == 200) {
+        // Success - return the response data
+        return data;
+      } else {
+        // Return error response with status code for proper handling
+        return {
+          'success': false,
+          'statusCode': response.statusCode,
+          'message': data['message'] ?? 'Login failed',
+        };
+      }
+    } catch (e) {
+      // Network/timeout errors
+      throw Exception('Network error: Unable to connect to server');
+    }
+  }
+
   // ==================== LIVE FEED API ====================
 
   /// Fetch live feed data for a specific company
@@ -461,6 +497,30 @@ class ApiService {
       return response;
     } catch (e) {
       throw Exception('Error creating visitor head: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> addStaff(Map<String, dynamic> data, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/auth/staff'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(data),
+      ).timeout(ApiConfig.requestTimeout);
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 201) {
+        return responseData;
+      } else {
+        throw Exception(responseData['message'] ?? 'Failed to add staff');
+      }
+    } catch (e) {
+      throw Exception('Error adding staff: $e');
     }
   }
 

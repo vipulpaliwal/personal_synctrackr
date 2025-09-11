@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:get/get.dart';
+import 'package:synctrackr/admin/controllers/admin_login_controller.dart';
 import 'package:synctrackr/admin/screens/main_screen.dart';
 import 'package:synctrackr/core/constants/app_barrels.dart';
 import 'package:synctrackr/core/widgets/custom_btn.dart';
@@ -10,6 +11,7 @@ class AdminLoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AdminLoginController controller = Get.put(AdminLoginController());
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -90,95 +92,137 @@ class AdminLoginScreen extends StatelessWidget {
                             const SizedBox(height: 12),
 
                             // Email Field
-                            TextField(
-                              style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black),
-                              decoration: InputDecoration(
-                                hintText: "Email Id",
-                                hintStyle: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark
-                                      ? AppColors.primaryBlue
-                                      : Colors.black54,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
+                            Obx(() {
+                              return TextField(
+                                controller: controller.emailController,
+                                style: TextStyle(
+                                    color:
+                                        isDark ? Colors.white : Colors.black),
+                                decoration: InputDecoration(
+                                  hintText: "Email Id",
+                                  errorText: controller.emailError.value.isEmpty
+                                      ? null
+                                      : controller.emailError.value,
+                                  hintStyle: TextStyle(
+                                    fontSize: 14,
                                     color: isDark
                                         ? AppColors.primaryBlue
-                                        : Colors.black,
+                                        : Colors.black54,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 14),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? AppColors.primaryBlue
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? AppColors.primaryBlue
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                        color: AppColors.primaryBlue),
                                   ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? AppColors.primaryBlue
-                                        : Colors.black,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: AppColors.primaryBlue),
-                                ),
-                              ),
-                            ),
+                              );
+                            }),
                             const SizedBox(height: 12),
-                            TextField(
-                              style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black),
-                              decoration: InputDecoration(
-                                hintText: "Password",
-                                hintStyle: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark
-                                      ? AppColors.primaryBlue
-                                      : Colors.black54,
-                                ),
-                                suffixIcon: const Icon(Icons.visibility_off),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
+                            Obx(() {
+                              return TextField(
+                                controller: controller.passwordController,
+                                obscureText:
+                                    !controller.isPasswordVisible.value,
+                                style: TextStyle(
+                                    color:
+                                        isDark ? Colors.white : Colors.black),
+                                decoration: InputDecoration(
+                                  hintText: "Password",
+                                  errorText:
+                                      controller.passwordError.value.isEmpty
+                                          ? null
+                                          : controller.passwordError.value,
+                                  hintStyle: TextStyle(
+                                    fontSize: 14,
                                     color: isDark
                                         ? AppColors.primaryBlue
-                                        : Colors.black,
+                                        : Colors.black54,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      controller.isPasswordVisible.value
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      controller.togglePasswordVisibility();
+                                    },
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 14),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? AppColors.primaryBlue
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? AppColors.primaryBlue
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                        color: AppColors.primaryBlue),
                                   ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? AppColors.primaryBlue
-                                        : Colors.black,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: AppColors.primaryBlue),
-                                ),
-                              ),
-                            ),
+                              );
+                            }),
                             const SizedBox(height: 12),
 
                             // Terms Checkbox
                             Row(
                               children: [
-                                Checkbox(
-                                  value: true,
-                                  onChanged: (value) {},
-                                  side: BorderSide(
-                                    color: isDark
-                                        ? const Color(0xFFBCD3FF)
-                                        : Colors.black45,
-                                  ),
-                                  activeColor: AppColors.primaryBlue,
-                                ),
+                                // Checkbox(
+                                //   value: true,
+                                //   onChanged: (value) {},
+                                //   side: BorderSide(
+                                //     color: isDark
+                                //         ? const Color(0xFFBCD3FF)
+                                //         : Colors.black45,
+                                //   ),
+                                //   activeColor: AppColors.primaryBlue,
+                                // ),
+                                Obx(() {
+                                  return Checkbox(
+                                    value: controller.isTermsAccepted.value,
+                                    onChanged: (value) {
+                                      controller.isTermsAccepted.value =
+                                          value ?? false;
+                                    },
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFFBCD3FF)
+                                          : Colors.black45,
+                                    ),
+                                    activeColor: AppColors.primaryBlue,
+                                  );
+                                }),
+
                                 Expanded(
                                   child: Text.rich(
                                     TextSpan(
@@ -211,22 +255,56 @@ class AdminLoginScreen extends StatelessWidget {
                             const SizedBox(height: 12),
 
                             // Button
-                            CustomButton(
-                              text: "Sign In",
-                              onPressed: () {
-                                // Initialize MainController before navigation
-                                Get.put(MainController());
-                                Get.to(MainScreen());
-                              },
-                              backgroundColor: isDark
-                                  ? AppColors.darkPrimaryBlue
-                                  : AppColors.primaryBlue,
-                              foregroundColor: isDark
-                                  ? AppColors.darkBackground
-                                  : AppColors.background,
-                              fontSize: isMobile ? 14 : 15,
-                            ),
+                            Obx(() {
+                              return controller.isLoading.value
+                                  ? const Center(
+                                      child: CircularProgressIndicator())
+                                  : CustomButton(
+                                      text: "Sign In",
+                                      onPressed: controller
+                                              .isTermsAccepted.value
+                                          ? () => controller.login()
+                                          : null, // <-- disabled when checkbox unchecked
+                                      backgroundColor: isDark
+                                          ? AppColors.darkPrimaryBlue
+                                          : AppColors.primaryBlue,
+                                      foregroundColor: isDark
+                                          ? AppColors.darkBackground
+                                          : AppColors.background,
+                                      fontSize: isMobile ? 14 : 15,
+                                    );
+
+                              //
+                              //
+                              // CustomButton(
+                              //     text: "Sign In",
+                              //     onPressed: () {
+                              //       controller.login();
+                              //     },
+                              //     backgroundColor: isDark
+                              //         ? AppColors.darkPrimaryBlue
+                              //         : AppColors.primaryBlue,
+                              //     foregroundColor: isDark
+                              //         ? AppColors.darkBackground
+                              //         : AppColors.background,
+                              //     fontSize: isMobile ? 14 : 15,
+                              //   );
+                            }),
                             const SizedBox(height: 10),
+
+                            Obx(() {
+                              if (controller.generalError.value.isNotEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    controller.generalError.value,
+                                    style: const TextStyle(color: Colors.red),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }),
 
                             Align(
                               alignment: Alignment.centerRight,

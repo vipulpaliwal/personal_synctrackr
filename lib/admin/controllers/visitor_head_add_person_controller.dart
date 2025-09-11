@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class VisitorController extends GetxController {
   final ApiService _apiService = ApiService();
+  final _secureStorage = const FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -18,6 +20,7 @@ class VisitorController extends GetxController {
   var selectedAvatarIndex = (-1).obs;
   var customImage = Rxn<XFile>();
   var accessType = 'Staff Person'.obs;
+  var role = 'staff'.obs;
 
   GlobalKey<FormState> get formKey => _formKey;
 
@@ -44,21 +47,25 @@ class VisitorController extends GetxController {
         "email": emailController.text,
         "password": passwordController.text,
         "role": "staff",
-        "staffRole": staffRoleController.text,
+        "staffRole": role.value,
         "dept": deptController.text,
         "designation": designationController.text,
         "mobileNumber": mobileNumberController.text,
       };
 
       try {
-        await _apiService.createVisitorHead(data);
-        Get.snackbar('Success', 'Visitor head created successfully',
+        final token = await _secureStorage.read(key: 'authToken');
+        if (token == null) {
+          throw Exception('Auth token not found');
+        }
+        await _apiService.addStaff(data, token);
+        Get.snackbar('Success', 'Staff added successfully',
             backgroundColor: Colors.green,
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM);
         _clearForm();
       } catch (e) {
-        Get.snackbar('Error', 'Failed to create visitor head',
+        Get.snackbar('Error', e.toString(),
             backgroundColor: Colors.red,
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM);
@@ -77,5 +84,7 @@ class VisitorController extends GetxController {
     deptController.clear();
     designationController.clear();
     mobileNumberController.clear();
+    selectedAvatarIndex.value = -1;
+    customImage.value = null;
   }
 }
