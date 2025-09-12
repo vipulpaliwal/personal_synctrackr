@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/visitors_controller.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
+import 'package:synctrackr/admin/screens/admin_mobile_no_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/screens/visitor_dashboard.dart';
@@ -58,13 +59,9 @@ class VisitorsScreen extends StatelessWidget {
                   _buildActionButtons(constraints, mainController),
                   SizedBox(height: isTabletOrWeb ? 24 : 16),
 
-                  
-
                   const SizedBox(height: 24),
 
                   EmployeeList()
-
-                 
                 ],
               ),
             ),
@@ -90,6 +87,7 @@ class VisitorsScreen extends StatelessWidget {
                 color: isDarkMode ? adminAppColors.secondary : Colors.black,
               ),
               isTabletOrWeb,
+              () {},
               mainController,
             ),
           ),
@@ -102,6 +100,9 @@ class VisitorsScreen extends StatelessWidget {
                 color: isDarkMode ? adminAppColors.secondary : Colors.black,
               ),
               isTabletOrWeb,
+              () {
+                Get.to(AdminMobileNoScreen());
+              },
               mainController,
             ),
           ),
@@ -114,6 +115,7 @@ class VisitorsScreen extends StatelessWidget {
                 color: isDarkMode ? adminAppColors.secondary : Colors.black,
               ),
               isTabletOrWeb,
+              () {},
               mainController,
             ),
           ),
@@ -123,45 +125,46 @@ class VisitorsScreen extends StatelessWidget {
   }
 
   Widget _buildActionButton(String text, Widget icon, bool isTabletOrWeb,
-      MainController mainController) {
+      VoidCallback onPressed, MainController mainController) {
     return Obx(() {
       final isDarkMode = mainController.isDarkMode.value;
-      return Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: isTabletOrWeb ? 16 : 8,
-            vertical: isTabletOrWeb ? 12 : 10),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isDarkMode
-                ? adminAppColors.secondary
-                : adminAppColors.primary, // Set border color
-            width: 2.0, // Set border width
-            style:
-                BorderStyle.solid, // Set border style (solid, dashed, dotted)
-          ),
-          color: isDarkMode
-              ? adminAppColors.darkSecondaryBackground
-              : const Color(0xFFe4efff),
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: GoogleFonts.lexend(
-                fontSize: isTabletOrWeb ? 14 : 10,
-                color: isDarkMode ? Colors.white : Color(0xFF374151),
-                fontWeight: FontWeight.w300,
-              ),
+      return GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: isTabletOrWeb ? 16 : 8,
+              vertical: isTabletOrWeb ? 12 : 10),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isDarkMode
+                  ? adminAppColors.secondary
+                  : adminAppColors.primary, // Set border color
+              width: 2.0, // Set border width
+              style:
+                  BorderStyle.solid, // Set border style (solid, dashed, dotted)
             ),
-          ],
+            color: isDarkMode
+                ? adminAppColors.darkSecondaryBackground
+                : const Color(0xFFe4efff),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              icon,
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: GoogleFonts.lexend(
+                  fontSize: isTabletOrWeb ? 14 : 10,
+                  color: isDarkMode ? Colors.white : Color(0xFF374151),
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     });
   }
-
- 
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/reports_view_controller.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
+import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';
 import 'package:synctrackr/admin/widgets/visitor_types_chart.dart';
@@ -95,33 +96,39 @@ class ReportsViewScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 24,
-                                      height: 24,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Stack(),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      _getReportCount(mainController),
-                                      style: TextStyle(
-                                        color: isDarkMode
-                                            ? adminAppColors.darkTextPrimary
-                                            : const Color(0xFF282828),
-                                        fontSize: 24,
-                                        fontFamily: 'Lexend',
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.50,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                               
+ Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    // Icon
+    ImageIcon(
+      color: isDarkMode
+          ? adminAppColors.secondary
+          : adminAppColors.primary,
+      AssetImage(AllImages.peopleIcon),
+    ),
+
+    // Spacing between icon & number
+    const SizedBox(width: 10),
+
+    // Number text
+    Text(
+      _getReportCount(mainController),
+      style: TextStyle(
+        color: isDarkMode
+            ? adminAppColors.darkTextPrimary
+            : const Color(0xFF282828),
+        fontSize: 24,
+        fontFamily: 'Lexend',
+        fontWeight: FontWeight.w600,
+        height: 1.50,
+      ),
+    ),
+  ],
+)
+
+
+
                               ],
                             ),
                           ),

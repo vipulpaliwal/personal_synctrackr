@@ -49,10 +49,9 @@ class ReportsStaticsChart extends GetView<ReportsStaticsChartController> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      border:
-                          Border.all(
-                            color: isDarkMode? Colors.grey: Colors.black,
-                             width: 1.5), // border
+                      border: Border.all(
+                          color: isDarkMode ? Colors.grey : Colors.black,
+                          width: 1.5), // border
                       borderRadius: BorderRadius.circular(8), // corner rounded
                     ),
                     child: DropdownButton<String>(
@@ -111,8 +110,10 @@ class ReportsStaticsChart extends GetView<ReportsStaticsChartController> {
                             ),
                             Row(
                               children: List.generate(
-                                  controller.chartLabels[controller.selectedFilter.value]!.length,
-                                  (index) {
+                                  controller
+                                      .chartLabels[
+                                          controller.selectedFilter.value]!
+                                      .length, (index) {
                                 return Expanded(
                                   child: MouseRegion(
                                     onEnter: (_) =>
@@ -174,7 +175,6 @@ class VisitorChartPainter extends CustomPainter {
     path.moveTo(0, size.height);
 
     if (values.length == 1) {
-      // Draw a single bar with a rising diagonal line
       double dy = size.height * (1 - values[0]);
       path.lineTo(size.width, dy);
       path.lineTo(size.width, size.height);

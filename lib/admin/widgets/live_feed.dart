@@ -317,7 +317,6 @@ class LiveFeed extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-          
                 ImageIcon(
                   AssetImage(AllImages.arrowRight),
                   color: isDarkMode
@@ -343,51 +342,79 @@ class LiveFeed extends StatelessWidget {
               ),
               child: RefreshIndicator(
                 onRefresh: () async {
-                   controller.fetchLiveFeed();
+                  controller.fetchLiveFeed();
                 },
                 child: Obx(() {
-                  // Show loading state
-                  if (controller.isLiveFeedLoading.value) {
-                    return _buildLoadingState(isDarkMode);
-                  }
-            
-                  // Show error state
-                  if (controller.liveFeedError.value.isNotEmpty) {
-                    return _buildErrorState(
-                        controller.liveFeedError.value, isDarkMode, () {
-                      controller.fetchLiveFeed();
-                    });
-                  }
-            
-                  // Show empty state
-                  if (controller.liveFeedItems.isEmpty) {
-                    return _buildEmptyState(isDarkMode);
-                  }
-            
-                  // Filter for 'IN' and 'OUT' statuses
+                  final isLoading = controller.isLiveFeedLoading.value;
+                  final hasError = controller.liveFeedError.value.isNotEmpty;
+
+                  // Prefer showing previously loaded data if available
+                  final hasData = controller.liveFeedItems.isNotEmpty;
+
+                  // Compute filtered list once
                   final filteredFeed = controller.liveFeedItems.where((item) {
                     final status = item['status']?.toUpperCase();
-                    return status == 'IN' || status == 'OUT';
+                    return status == 'IN' || status == 'OUT' || status == 'in' || status == 'out';
                   }).toList();
 
-                  // Show empty state if filtered list is empty
-                  if (filteredFeed.isEmpty) {
+                  // If no data yet, fall back to loading/error/empty
+                  if (!hasData || filteredFeed.isEmpty) {
+                    if (isLoading) {
+                      return _buildLoadingState(isDarkMode);
+                    }
+                    if (hasError) {
+                      return _buildErrorState(
+                        controller.liveFeedError.value,
+                        isDarkMode,
+                        () {
+                          controller.fetchLiveFeed();
+                        },
+                      );
+                    }
                     return _buildEmptyState(isDarkMode);
                   }
-            
-                  // Show live feed data
-                  return ListView(
-                    shrinkWrap: true,
-                    children: filteredFeed
-                        .asMap()
-                        .entries
-                        .map((entry) => _buildLiveFeedItem(
-                              entry.value,
-                              isDarkMode,
-                              key: ValueKey(
-                                  'live_feed_${entry.key}_${entry.value['name']}_${entry.value['time']}'),
-                            ))
-                        .toList(),
+
+                  // Show data; overlay subtle indicators for loading/error
+                  return Stack(
+                    children: [
+                      ListView(
+                        shrinkWrap: true,
+                        children: filteredFeed
+                            .asMap()
+                            .entries
+                            .map((entry) => _buildLiveFeedItem(
+                                  entry.value,
+                                  isDarkMode,
+                                  key: ValueKey(
+                                      'live_feed_${entry.key}_${entry.value['name']}_${entry.value['time']}'),
+                                ))
+                            .toList(),
+                      ),
+                      if (isLoading)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: LinearProgressIndicator(
+                            minHeight: 2,
+                            color: isDarkMode
+                                ? adminAppColors.darkTextPrimary
+                                : adminAppColors.textPrimary,
+                            backgroundColor: Colors.transparent,
+                          ),
+                        ),
+                      if (hasError)
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          right: 8,
+                          child: _buildStaleBanner(
+                            isDarkMode,
+                            message: 'Showing last updated data. Tap to retry.',
+                            onRetry: () => controller.fetchLiveFeed(),
+                          ),
+                        ),
+                    ],
                   );
                 }),
               ),
@@ -626,6 +653,66 @@ class LiveFeed extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaleBanner(bool isDarkMode,
+      {required String message, required VoidCallback onRetry}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onRetry,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDarkMode
+                ? adminAppColors.darkTextSecondary.withOpacity(0.15)
+                : Colors.black.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isDarkMode ? adminAppColors.darkBorder : Colors.black12,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.wifi_off_rounded,
+                size: 16,
+                color: isDarkMode
+                    ? adminAppColors.darkTextSecondary
+                    : const Color(0xFF6B7280),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lexend(
+                    fontSize: 12,
+                    color: isDarkMode
+                        ? adminAppColors.darkTextPrimary
+                        : adminAppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Retry',
+                style: GoogleFonts.lexend(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkMode
+                      ? adminAppColors.darkTextPrimary
+                      : adminAppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

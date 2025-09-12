@@ -81,67 +81,96 @@ class ReportsStaticsChartController extends GetxController {
       // Store raw data
       rawData[selectedFilter.value]?.assignAll(data);
 
-      final labels = data.map((item) {
-        final date = DateTime.parse(item['date']);
-        if (selectedFilter.value == 'daily') {
-          return "Today";
-        } else if (selectedFilter.value == 'weekly') {
-          const dayAbbreviations = [
-            'Mon',
-            'Tue',
-            'Wed',
-            'Thu',
-            'Fri',
-            'Sat',
-            'Sun'
-          ];
-          return dayAbbreviations[date.weekday - 1];
-        } else if (selectedFilter.value == 'monthly') {
-          // For monthly filter, show month abbreviations
-          const monthAbbreviations = [
-            '',
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec'
-          ];
-          return monthAbbreviations[date.month];
-        } else {
-          // yearly - show month abbreviations
-          const monthAbbreviations = [
-            '',
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec'
-          ];
-          return monthAbbreviations[date.month];
-        }
-      }).toList();
+      List<String> labels;
+      List<double> values;
+      List<Map<String, dynamic>> preparedRaw;
 
-      final values =
-          data.map((item) => (item['count'] as num).toDouble()).toList();
+      if (selectedFilter.value == 'monthly') {
+        // Group all entries by month (YYYY-MM) and sum counts
+        final Map<String, double> monthToSum = {};
+        for (final item in data) {
+          final date = DateTime.parse(item['date']);
+          final key = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+          final count = (item['count'] as num).toDouble();
+          monthToSum.update(key, (v) => v + count, ifAbsent: () => count);
+        }
+
+        // Sort by chronological month key
+        final sortedKeys = monthToSum.keys.toList()
+          ..sort((a, b) => a.compareTo(b));
+
+        labels = sortedKeys.map((k) {
+          final parts = k.split('-');
+          final year = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          // Label with month abbreviation (and year if spanning multiple years)
+          final monthName = _getMonthName(month);
+          final spansMultipleYears = monthToSum.keys
+                  .map((e) => int.parse(e.split('-')[0]))
+                  .toSet()
+                  .length >
+              1;
+
+          return spansMultipleYears ? '$monthName $year' : monthName;
+        }).toList();
+
+        values = sortedKeys.map((k) => monthToSum[k]!).toList();
+        preparedRaw = [
+          for (int i = 0; i < sortedKeys.length; i++)
+            {
+              'date': sortedKeys[i],
+              'count': values[i].toInt(),
+            }
+        ];
+      } else {
+        // Original behavior for other filters
+        labels = data.map<String>((item) {
+          final date = DateTime.parse(item['date']);
+          if (selectedFilter.value == 'daily') {
+            return "Today";
+          } else if (selectedFilter.value == 'weekly') {
+            const dayAbbreviations = [
+              'Mon',
+              'Tue',
+              'Wed',
+              'Thu',
+              'Fri',
+              'Sat',
+              'Sun'
+            ];
+            return dayAbbreviations[date.weekday - 1];
+          } else if (selectedFilter.value == 'yearly') {
+            const monthAbbreviations = [
+              '',
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec'
+            ];
+            return monthAbbreviations[date.month];
+          } else {
+            return item['date'] as String;
+          }
+        }).toList();
+
+        values = data.map((item) => (item['count'] as num).toDouble()).toList();
+        preparedRaw =
+            data.map((e) => {'date': e['date'], 'count': e['count']}).toList();
+      }
 
       final formattedIndividualCounts =
           values.map((v) => _formatNumber(v)).toList();
 
-      final maxValue = values.reduce((a, b) => a > b ? a : b);
+      final maxValue =
+          values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b);
       final normalizedValues =
           maxValue == 0 ? values : values.map((v) => v / maxValue).toList();
 
@@ -149,6 +178,7 @@ class ReportsStaticsChartController extends GetxController {
       chartLabels[selectedFilter.value]?.assignAll(labels);
       chartIndividualCounts[selectedFilter.value]
           ?.assignAll(formattedIndividualCounts);
+      rawData[selectedFilter.value]?.assignAll(preparedRaw);
       totalCounts[selectedFilter.value] = "";
     } catch (e) {
       errorMessage(e.toString());
@@ -205,21 +235,7 @@ class ReportsStaticsChartController extends GetxController {
     }
   }
 
-  String _getDaySuffix(int day) {
-    if (day >= 11 && day <= 13) {
-      return 'th';
-    }
-    switch (day % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
-    }
-  }
+  // Removed unused _getDaySuffix helper
 
   String _getMonthName(int month) {
     const monthNames = [
