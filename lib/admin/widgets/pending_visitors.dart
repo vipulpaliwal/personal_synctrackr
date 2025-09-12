@@ -9,6 +9,12 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
+import 'package:synctrackr/admin/widgets/employee_list.dart';
+
+
+
+
+
 
 class PendingVisitors extends StatelessWidget {
   const PendingVisitors({super.key});
@@ -115,7 +121,8 @@ class PendingVisitors extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  visitor.name,
+                                  // visitor.name,
+                                  capitalizeWords(visitor.name),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isDarkMode

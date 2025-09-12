@@ -10,7 +10,26 @@ import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
+import 'package:synctrackr/admin/widgets/employee_list.dart';
 import 'package:synctrackr/core/constants/app_barrels.dart';
+
+ImageProvider _getImageProvider(String? photoData) {
+  if (photoData == null || photoData.isEmpty) {
+    return const AssetImage('assets/images/profile.jpg');
+  }
+  if (Uri.tryParse(photoData)?.hasAbsolutePath ?? false) {
+    return NetworkImage(photoData);
+  }
+  try {
+    final UriData? data = Uri.tryParse(photoData)?.data;
+    if (data != null) {
+      return MemoryImage(data.contentAsBytes());
+    }
+  } catch (e) {
+    print('Error decoding image from UriData: $e');
+  }
+  return const AssetImage('assets/images/profile.jpg');
+}
 
 class VisitorDetailsScreen extends StatefulWidget {
   final int visitorId;
@@ -68,7 +87,7 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   scrolledUnderElevation: 0.0,
-                  flexibleSpace: CommonHeader(title: visitor.name),
+                  flexibleSpace: CommonHeader(title: capitalizeWords(visitor.name)),
                 ),
                 SliverToBoxAdapter(
                   child: SingleChildScrollView(
@@ -127,11 +146,7 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
           ),
           child: CircleAvatar(
             radius: 60,
-            backgroundImage:
-                (visitor.photo != null && visitor.photo!.isNotEmpty)
-                    ? NetworkImage(visitor.photo!)
-                    : const AssetImage('assets/images/profile.jpg')
-                        as ImageProvider,
+            backgroundImage: _getImageProvider(visitor.photo),
           ),
         ),
         const SizedBox(width: 24),
@@ -160,7 +175,7 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              visitor.name,
+              capitalizeWords(visitor.name),
               style: GoogleFonts.lexend(
                 color: isDarkMode
                     ? adminAppColors.darkTextPrimary
@@ -226,7 +241,7 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildDetailItem(
-                      'Meeting with', visitor.host!.name, isDarkMode),
+                      'Meeting with', visitor.host?.name ?? 'N/A', isDarkMode),
                   const SizedBox(height: 16),
                   _buildDetailItem(
                       'Company', visitor.company ?? 'N/A', isDarkMode),
@@ -291,8 +306,8 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
               ),
               const SizedBox(height: 8),
               if (visitor.idProof?.image != null)
-                Image.network(
-                  visitor.idProof!.image!,
+                Image(
+                  image: _getImageProvider(visitor.idProof!.image!),
                   height: 150,
                   fit: BoxFit.cover,
                 )

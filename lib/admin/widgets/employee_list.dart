@@ -7,6 +7,18 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
 
+String capitalizeWords(String text) {
+  if (text.isEmpty) {
+    return '';
+  }
+  return text
+      .split(' ')
+      .map((word) => word.isNotEmpty
+          ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+          : '')
+      .join(' ');
+}
+
 class EmployeeList extends StatelessWidget {
   const EmployeeList({super.key});
 
@@ -295,7 +307,7 @@ class EmployeeList extends StatelessWidget {
                                                                 .center, // center align text
                                                         children: [
                                                           Text(
-                                                            result.name,
+                                                            capitalizeWords(result.name),
                                                             style: GoogleFonts
                                                                 .lexend(
                                                               color: isDarkMode
@@ -312,7 +324,7 @@ class EmployeeList extends StatelessWidget {
                                                                     .ellipsis,
                                                           ),
                                                           Text(
-                                                            "Host: ${result.host?.name  }",
+                                                            "Host: ${capitalizeWords(result.host?.name ?? '')}",
                                                             style: GoogleFonts
                                                                 .lexend(
                                                               color: isDarkMode
