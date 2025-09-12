@@ -29,7 +29,10 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
   ];
 
   VisitorHeadUpdatePerson({required String headId, super.key})
-      : controller = Get.put(VisitorHeadUpdateController(headId: headId));
+      : controller = Get.put(
+          VisitorHeadUpdateController(headId: headId),
+          tag: 'head_$headId',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +55,9 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                   color: isDarkMode ? adminAppColors.darkCard : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color:
-                        isDarkMode ? adminAppColors.secondary : Colors.grey[300]!,
+                    color: isDarkMode
+                        ? adminAppColors.secondary
+                        : Colors.grey[300]!,
                     width: 2,
                   ),
                   boxShadow: [
@@ -91,7 +95,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 20),
-        
+
                     // Avatar Selection Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +111,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                                     ? NetworkImage(image.path)
                                     : FileImage(File(image.path))
                                         as ImageProvider;
-        
+
                                 return Container(
                                   width: 80,
                                   height: 80,
@@ -147,9 +151,9 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                                 );
                               }
                             }),
-        
+
                             SizedBox(height: 12),
-        
+
                             // Upload Image Button
                             GestureDetector(
                               onTap: () => controller.pickImage(),
@@ -191,9 +195,9 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                             ),
                           ],
                         ),
-        
+
                         SizedBox(width: 20),
-        
+
                         // Vertical divider line
                         Container(
                           width: 1,
@@ -202,9 +206,9 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                               ? adminAppColors.darkBorder
                               : Colors.grey[300]!,
                         ),
-        
+
                         SizedBox(width: 20),
-        
+
                         // Right side - Avatar options and text
                         Expanded(
                           child: Column(
@@ -225,12 +229,13 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                                 builder: (context, constraints) {
                                   final double avatarSize = 60;
                                   final double spacing = 12;
-                                  final int itemsPerRow = (constraints.maxWidth /
-                                          (avatarSize + spacing))
-                                      .floor();
+                                  final int itemsPerRow =
+                                      (constraints.maxWidth /
+                                              (avatarSize + spacing))
+                                          .floor();
                                   final double maxWrapWidth =
                                       itemsPerRow * (avatarSize + spacing);
-        
+
                                   return SizedBox(
                                     width: maxWrapWidth,
                                     child: Wrap(
@@ -239,8 +244,8 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                                       children: List.generate(
                                           avatarImagePaths.length, (index) {
                                         return Obx(() => GestureDetector(
-                                              onTap: () =>
-                                                  controller.selectAvatar(index),
+                                              onTap: () => controller
+                                                  .selectAvatar(index),
                                               child: Container(
                                                   width: avatarSize,
                                                   height: avatarSize,
@@ -263,7 +268,8 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                                                   child: CircleAvatar(
                                                     radius: 30,
                                                     backgroundImage: AssetImage(
-                                                        avatarImagePaths[index]),
+                                                        avatarImagePaths[
+                                                            index]),
                                                   )),
                                             ));
                                       }),
@@ -276,18 +282,19 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                         ),
                       ],
                     ),
-        
+
                     SizedBox(height: 25),
-        
+
                     // Form Fields
                     Obx(() => _buildTextField(
                           label: "Full Name",
                           initialValue: controller.fullName.value,
-                          onChanged: (value) => controller.fullName.value = value,
+                          onChanged: (value) =>
+                              controller.fullName.value = value,
                           isDarkMode: isDarkMode,
                         )),
                     SizedBox(height: 16),
-        
+
                     Obx(() => _buildTextField(
                           label: "Phone",
                           prefix: "+91",
@@ -297,7 +304,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                           isDarkMode: isDarkMode,
                         )),
                     SizedBox(height: 16),
-        
+
                     Obx(() => _buildTextField(
                           label: "Email Id",
                           initialValue: controller.email.value,
@@ -306,7 +313,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                           isDarkMode: isDarkMode,
                         )),
                     SizedBox(height: 16),
-        
+
                     Obx(() => _buildTextField(
                           label: "Department",
                           initialValue: controller.department.value,
@@ -315,7 +322,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                           isDarkMode: isDarkMode,
                         )),
                     SizedBox(height: 16),
-        
+
                     Obx(() => _buildTextField(
                           label: "Designation",
                           initialValue: controller.designation.value,
@@ -324,7 +331,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                           isDarkMode: isDarkMode,
                         )),
                     SizedBox(height: 20),
-        
+
                     // Access Type
                     Text(
                       "Access Type",
@@ -337,7 +344,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8),
-        
+
                     Obx(() => Row(
                           children: [
                             Radio<String>(
@@ -378,7 +385,7 @@ class VisitorHeadUpdatePerson extends StatelessWidget {
                           ],
                         )),
                     SizedBox(height: 30),
-        
+
                     // Submit Button
                     Obx(() => controller.isLoading.value
                         ? Center(child: CircularProgressIndicator())

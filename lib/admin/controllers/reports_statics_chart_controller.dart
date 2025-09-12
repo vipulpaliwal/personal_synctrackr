@@ -6,16 +6,6 @@ import 'package:synctrackr/admin/services/api_services.dart';
 class ReportsStaticsChartController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  String _formatNumber(double n) {
-    if (n >= 1000000) {
-      return '${(n / 1000000).toStringAsFixed(2)}M';
-    } else if (n >= 1000) {
-      return '${(n / 1000).toStringAsFixed(2)}K';
-    } else {
-      return n.toStringAsFixed(0);
-    }
-  }
-
   late String companyId;
   final RxList<String> months = <String>[].obs;
   var hoveredIndex = RxnInt();
@@ -53,6 +43,14 @@ class ReportsStaticsChartController extends GetxController {
     "daily": "",
   });
 
+  // Store raw data for each filter type
+  final RxMap<String, List<Map<String, dynamic>>> rawData = RxMap({
+    "monthly": <Map<String, dynamic>>[].obs,
+    "weekly": <Map<String, dynamic>>[].obs,
+    "yearly": <Map<String, dynamic>>[].obs,
+    "daily": <Map<String, dynamic>>[].obs,
+  });
+
   @override
   void onInit() {
     super.onInit();
@@ -75,9 +73,13 @@ class ReportsStaticsChartController extends GetxController {
         chartData[selectedFilter.value]?.clear();
         chartLabels[selectedFilter.value]?.clear();
         chartIndividualCounts[selectedFilter.value]?.clear();
+        rawData[selectedFilter.value]?.clear();
         totalCounts[selectedFilter.value] = "0";
         return;
       }
+
+      // Store raw data
+      rawData[selectedFilter.value]?.assignAll(data);
 
       final labels = data.map((item) {
         final date = DateTime.parse(item['date']);
@@ -94,8 +96,26 @@ class ReportsStaticsChartController extends GetxController {
             'Sun'
           ];
           return dayAbbreviations[date.weekday - 1];
+        } else if (selectedFilter.value == 'monthly') {
+          // For monthly filter, show month abbreviations
+          const monthAbbreviations = [
+            '',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec'
+          ];
+          return monthAbbreviations[date.month];
         } else {
-          // monthly or yearly
+          // yearly - show month abbreviations
           const monthAbbreviations = [
             '',
             'Jan',
@@ -137,8 +157,86 @@ class ReportsStaticsChartController extends GetxController {
     }
   }
 
-  void navigateToReportsScreen(String month) {
+  void navigateToReportsScreen(String label) {
     final mainController = Get.find<MainController>();
-    mainController.selectReportsView(month);
+
+    // Find the corresponding data for the clicked label
+    final currentFilter = selectedFilter.value;
+    final labels = chartLabels[currentFilter]!;
+    final index = labels.indexOf(label);
+
+    if (index != -1 && index < rawData[currentFilter]!.length) {
+      final selectedData = rawData[currentFilter]![index];
+      final count = selectedData['count'] as num;
+
+      // Create a more descriptive title based on the filter type
+      String title;
+      if (currentFilter == 'daily') {
+        title = 'Today Visitors';
+      } else if (currentFilter == 'weekly') {
+        title = '$label Visitors';
+      } else if (currentFilter == 'monthly') {
+        // For monthly, the label is the month name
+        title = '$label Visitors';
+      } else {
+        title = '$label Visitors';
+      }
+
+      // Store the selected data in main controller
+      mainController.setSelectedReportData(
+        title: title,
+        count: count.toInt(),
+        date: selectedData['date'],
+        filter: currentFilter,
+      );
+    } else {
+      // Fallback to original behavior
+      mainController.selectReportsView(label);
+    }
+  }
+
+  String _formatNumber(double n) {
+    if (n >= 1000000) {
+      return '${(n / 1000000).toStringAsFixed(2)}M';
+    } else if (n >= 1000) {
+      return '${(n / 1000).toStringAsFixed(2)}K';
+    } else {
+      return n.toStringAsFixed(0);
+    }
+  }
+
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
+
+  String _getMonthName(int month) {
+    const monthNames = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return monthNames[month];
   }
 }

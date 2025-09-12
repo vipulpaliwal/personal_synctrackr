@@ -335,7 +335,6 @@
 //   }
 // }
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -343,7 +342,6 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/others_controller.dart';
-import 'package:synctrackr/admin/screens/others_checkIN_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/utils/responsive.dart';
@@ -377,6 +375,13 @@ class _OthersScreenState extends State<OthersScreen> {
       return 10.0;
     }
     return 10.0; // fallback mobile etc.
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Load company settings (modifications) for toggles
+    controller.loadCompanySettings();
   }
 
   @override
@@ -534,11 +539,11 @@ class _OthersScreenState extends State<OthersScreen> {
               SizedBox(
                 width: 15,
               ),
-              _buildToggleOption('Need a mobile number with OTP?', true),
+              _buildOtpMobileToggle(),
               SizedBox(
                 width: 12,
               ),
-              _buildToggleOption('Is it necessary to keep ID proof?', false),
+              _buildIdProofToggle(),
             ],
           ),
         ),
@@ -604,6 +609,78 @@ class _OthersScreenState extends State<OthersScreen> {
     );
   }
 
+  Widget _buildOtpMobileToggle() {
+    MainController mainController = Get.find();
+    final isDarkMode = mainController.isDarkMode.value;
+    return Obx(() {
+      final value = controller.otpRequired.value;
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+              child: Text('Need a mobile number with OTP?',
+                  style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      color: isDarkMode ? Colors.white : Colors.black))),
+          Switch(
+              value: value,
+              onChanged: (v) async {
+                final previous = controller.otpRequired.value;
+                controller.otpRequired.value = v;
+                final err =
+                    await controller.updateModification('otpRequired', v);
+                if (err != null) {
+                  controller.otpRequired.value = previous;
+                  Get.snackbar('Not allowed', err,
+                      snackPosition: SnackPosition.BOTTOM);
+                } else {
+                  // Optionally also ensure mobileRequired is true when otpRequired is enabled
+                  if (v && controller.mobileRequired.value == false) {
+                    final mobileErr = await controller.updateModification(
+                        'mobileRequired', true);
+                    if (mobileErr == null)
+                      controller.mobileRequired.value = true;
+                  }
+                }
+              },
+              activeColor: Colors.blue.shade600),
+        ],
+      );
+    });
+  }
+
+  Widget _buildIdProofToggle() {
+    MainController mainController = Get.find();
+    final isDarkMode = mainController.isDarkMode.value;
+    return Obx(() {
+      final value = controller.idProofRequired.value;
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+              child: Text('Is it necessary to keep ID proof?',
+                  style: GoogleFonts.lexend(
+                      fontSize: 14,
+                      color: isDarkMode ? Colors.white : Colors.black))),
+          Switch(
+              value: value,
+              onChanged: (v) async {
+                final previous = controller.idProofRequired.value;
+                controller.idProofRequired.value = v;
+                final err =
+                    await controller.updateModification('idProofRequired', v);
+                if (err != null) {
+                  controller.idProofRequired.value = previous;
+                  Get.snackbar('Not allowed', err,
+                      snackPosition: SnackPosition.BOTTOM);
+                }
+              },
+              activeColor: Colors.blue.shade600),
+        ],
+      );
+    });
+  }
+
   Widget _buildBulkUploadSection() {
     MainController mainController = Get.find();
     final isDarkMode = mainController.isDarkMode.value;
@@ -624,8 +701,7 @@ class _OthersScreenState extends State<OthersScreen> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ImageIcon(
-                    AssetImage(AllImages.bulkUploadIcon),
+                  ImageIcon(AssetImage(AllImages.bulkUploadIcon),
                       color: Colors.blue, size: 40),
                   SizedBox(width: 8),
                   Text.rich(
@@ -706,9 +782,38 @@ class _OthersScreenState extends State<OthersScreen> {
                 )
               : uploadBox,
           const SizedBox(height: 8),
-          Text(
-            'Only support .csv, .xlsx and .xls files',
-            style: GoogleFonts.lexend(fontSize: 12, color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Only support .csv, .xlsx and .xls files',
+                style: GoogleFonts.lexend(fontSize: 12, color: Colors.grey),
+              ),
+              Obx(() {
+                final uploading = controller.isUploading.value;
+                final canUpload = controller.file.value != null && !uploading;
+                return ElevatedButton(
+                  onPressed: canUpload
+                      ? () async {
+                          final err = await controller.uploadBulkFile();
+                          if (err != null) {
+                            Get.snackbar('Upload failed', err,
+                                snackPosition: SnackPosition.BOTTOM);
+                          } else {
+                            Get.snackbar('Success', 'Bulk file uploaded',
+                                snackPosition: SnackPosition.BOTTOM);
+                          }
+                        }
+                      : null,
+                  child: uploading
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text('Upload'),
+                );
+              })
+            ],
           ),
         ],
       );

@@ -19,13 +19,15 @@ class DashboardController extends GetxController {
   var visitorStats = <String, int>{}.obs;
   var isStatsLoading = true.obs;
   var statsError = ''.obs;
-  var selectedStatRange = 'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
+  var selectedStatRange =
+      'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
 
   // Visitor Types (Pie Chart)
   var visitorTypes = <String, double>{}.obs;
   var isVisitorTypesLoading = true.obs;
   var visitorTypesError = ''.obs;
-  var selectedVisitorTypeRange = 'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
+  var selectedVisitorTypeRange =
+      'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
 
   // Pending Visitors
   var pendingVisitors = <PendingVisitor>[].obs;
@@ -36,6 +38,7 @@ class DashboardController extends GetxController {
   var todaysVisitors = 0.obs;
   var todaysCheckins = 0.obs;
   var todaysCheckouts = 0.obs;
+  var monthlyVisitors = 0.obs;
   var isCardsLoading = true.obs;
   var cardsError = ''.obs;
 
@@ -54,6 +57,7 @@ class DashboardController extends GetxController {
       fetchLiveFeed();
       fetchPendingVisitors();
       fetchStatsCards();
+      fetchMonthlyVisitors();
     });
   }
 
@@ -63,6 +67,7 @@ class DashboardController extends GetxController {
     fetchVisitorTypes();
     fetchPendingVisitors();
     fetchStatsCards();
+    fetchMonthlyVisitors();
   }
 
   // ==================== DATA FETCHING METHODS ====================
@@ -84,11 +89,10 @@ class DashboardController extends GetxController {
     try {
       isStatsLoading(true);
       statsError('');
-      final stats = await _apiService.getStatsSeries(
-          companyId, selectedStatRange.value);
+      final stats =
+          await _apiService.getStatsSeries(companyId, selectedStatRange.value);
       final Map<String, int> formattedStats = {
-        for (var stat in stats)
-          stat['date']: (stat['count'] as num).toInt()
+        for (var stat in stats) stat['date']: (stat['count'] as num).toInt()
       };
       visitorStats.assignAll(formattedStats);
     } catch (e) {
@@ -144,6 +148,23 @@ class DashboardController extends GetxController {
       cardsError('Failed to load stats cards: $e');
     } finally {
       isCardsLoading(false);
+    }
+  }
+
+  void fetchMonthlyVisitors() async {
+    try {
+      final stats = await _apiService.getStatsSeries(companyId, 'monthly');
+      final int total = stats.fold<int>(0, (sum, item) {
+        final dynamic value = item['count'];
+        return sum +
+            ((value is num)
+                ? value.toInt()
+                : int.tryParse(value?.toString() ?? '0') ?? 0);
+      });
+      monthlyVisitors(total);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to load monthly visitors: $e');
     }
   }
 

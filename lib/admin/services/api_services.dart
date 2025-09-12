@@ -290,6 +290,38 @@ class ApiService {
     }
   }
 
+  // ====================  Others COMPANY SETTINGS / MODIFICATIONS ====================
+
+  /// Patch company modifications (toggles/preferences)
+  /// PATCH /api/admin/:companyId/settings/modifications
+  Future<Map<String, dynamic>> updateCompanyModifications(
+      String companyId, Map<String, dynamic> updates) async {
+    try {
+      final response = await http
+          .patch(
+            Uri.parse(
+                '${ApiConfig.apiBaseUrl}/admin/$companyId/settings/modifications'),
+            headers: _headers,
+            body: json.encode(updates),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return data is Map<String, dynamic> ? data : {'success': true};
+      } else if (response.statusCode == 403) {
+        // Plan/trial restriction response
+        throw Exception(data['message'] ??
+            'This modification is not allowed on your current plan.');
+      } else {
+        throw Exception(data['message'] ?? 'Failed to update settings');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Get today's check-ins count
   /// GET /api/admin/:companyId/checkins/today/count
   Future<int> getTodaysCheckins(String companyId) async {
@@ -319,6 +351,17 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error fetching today\'s check-outs count: $e');
+    }
+  }
+
+  /// Get company settings including company, compliances and visitorForm
+  /// GET /api/admin/:companyId/settings
+  Future<Map<String, dynamic>> getCompanySettings(String companyId) async {
+    try {
+      final response = await _get('/admin/$companyId/settings');
+      return response;
+    } catch (e) {
+      throw Exception('Error fetching company settings: $e');
     }
   }
 
@@ -559,6 +602,7 @@ class ApiService {
     }
   }
 
+
   Future<http.Response> getHeadDetails(String headId,
       {String? companyId}) async {
     final companyIdToUse = companyId ?? await ApiConfig.getCompanyId();
@@ -578,5 +622,173 @@ class ApiService {
       body: json.encode(data),
     );
     return response;
+  }
+
+  // ==================== E-PASS BULK UPLOAD ====================
+
+  /// Upload bulk e-passes file (CSV/XLS/XLSX)
+  /// POST /api/companies/:companyId/epasses/bulk
+  /// file field name: "upload"
+  Future<Map<String, dynamic>> uploadBulkEpasses(
+      {required String companyId, required String filePath}) async {
+    try {
+      final uri = Uri.parse(
+          '${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk');
+
+      final request = http.MultipartRequest('POST', uri);
+      // Do not set Content-Type header manually for multipart
+      request.headers.addAll({'Accept': 'application/json'});
+
+      final file = await http.MultipartFile.fromPath('upload', filePath);
+      request.files.add(file);
+
+      final streamed = await request.send().timeout(ApiConfig.requestTimeout);
+      final response = await http.Response.fromStream(streamed);
+
+      final data = json.decode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return data is Map<String, dynamic> ? data : {'success': true};
+      }
+      throw Exception(data['message'] ?? 'Bulk upload failed');
+    } catch (e) {
+      throw Exception('Error uploading bulk e-passes: $e');
+    }
+  }
+
+  // ==================== E-PASS LIST + EXPORT ====================
+
+  /// List e-passes
+  /// GET /api/companies/:companyId/epasses?search=&passtype=&page=&pageSize=
+  Future<Map<String, dynamic>> listEpasses({
+    required String companyId,
+    String? search,
+    String? passType,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'pageSize': pageSize.toString(),
+    };
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
+
+    final query = params.entries
+        .map((e) =>
+            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+        .join('&');
+
+    return await _get('/companies/$companyId/epasses?$query');
+  }
+
+  /// Export e-passes CSV and return bytes
+  /// GET /api/companies/:companyId/epasses/export.csv?search=&passtype=
+  Future<http.Response> exportEpassesCsv({
+    required String companyId,
+    String? search,
+    String? passType,
+  }) async {
+    final params = <String, String>{};
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
+    final query = params.isEmpty
+        ? ''
+        : '?' +
+            params.entries
+                .map((e) =>
+                    '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+                .join('&');
+    final url = Uri.parse(
+        '${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/export.csv$query');
+    final response = await http.get(url,
+        headers: {'Accept': 'text/csv'}).timeout(ApiConfig.requestTimeout);
+    return response;
+  }
+
+  // ==================== COMPLIANCES ====================
+
+  /// PUT /api/admin/:companyId/compliances { compliances: ["Mask", ...] }
+  Future<Map<String, dynamic>> putCompliances(
+      {required String companyId, required List<String> compliances}) async {
+    try {
+      final resp = await http
+          .put(
+            Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/compliances'),
+            headers: _headers,
+            body: json.encode({
+              'compliances': compliances,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
+      final data = json.decode(resp.body);
+      if (resp.statusCode == 200) return data;
+      throw Exception(data['message'] ?? 'Failed to update compliances');
+    } catch (e) {
+      throw Exception('Error updating compliances: $e');
+    }
+  }
+
+  // ==================== VISITOR FORM (single per company) ====================
+
+  /// GET /api/admin/:companyId/visitor-forms
+  Future<Map<String, dynamic>> getVisitorForm(String companyId) async {
+    return await _get('/admin/$companyId/visitor-forms');
+  }
+
+  /// PUT /api/admin/:companyId/visitor-form { fields: {...}, remove: [] }
+  Future<Map<String, dynamic>> saveVisitorForm(
+      {required String companyId,
+      Map<String, dynamic> fields = const {},
+      List<String> remove = const []}) async {
+    try {
+      final resp = await http
+          .put(
+            Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/visitor-form'),
+            headers: _headers,
+            body: json.encode({'fields': fields, 'remove': remove}),
+          )
+          .timeout(ApiConfig.requestTimeout);
+      final data = json.decode(resp.body);
+      if (resp.statusCode == 200) return data;
+      throw Exception(data['message'] ?? 'Failed to save visitor form');
+    } catch (e) {
+      throw Exception('Error saving visitor form: $e');
+    }
+  }
+
+  /// DELETE /api/admin/:companyId/compliances { remove: ["Mask"] }
+  Future<Map<String, dynamic>> deleteCompliances(
+      {required String companyId, required List<String> remove}) async {
+    try {
+      final req = http.Request('DELETE',
+          Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/compliances'));
+      req.headers.addAll(_headers);
+      req.body = json.encode({'remove': remove});
+      final streamed = await req.send().timeout(ApiConfig.requestTimeout);
+      final resp = await http.Response.fromStream(streamed);
+      final data = json.decode(resp.body);
+      if (resp.statusCode == 200) return data;
+      throw Exception(data['message'] ?? 'Failed to remove compliances');
+    } catch (e) {
+      throw Exception('Error removing compliances: $e');
+    }
+  }
+
+  /// Get returning visitors
+  /// GET /api/admin/:companyId/visitors/returning
+  Future<List<Map<String, dynamic>>> getReturningVisitors(
+      String companyId) async {
+    try {
+      final response = await _get('/admin/$companyId/visitors/returning');
+
+      if (response['success'] == true && response['data'] != null) {
+        return List<Map<String, dynamic>>.from(response['data']);
+      } else {
+        throw Exception(
+            'Failed to fetch returning visitors: ${response['message'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching returning visitors: $e');
+    }
   }
 }

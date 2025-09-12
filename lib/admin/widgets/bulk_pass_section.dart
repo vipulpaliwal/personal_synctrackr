@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
-import 'package:synctrackr/admin/utils/images.dart';
+import 'package:synctrackr/admin/services/api_services.dart';
+import 'package:synctrackr/admin/config/api_config.dart';
 
 class BulkPassSection extends StatefulWidget {
   const BulkPassSection({super.key});
@@ -14,6 +15,38 @@ class BulkPassSection extends StatefulWidget {
 
 class _BulkPassSectionState extends State<BulkPassSection> {
   MainController mainController = Get.find();
+  final ApiService _api = ApiService();
+
+  bool _loading = false;
+  List<Map<String, dynamic>> _rows = [];
+  int _page = 1;
+  final int _pageSize = 10;
+  String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    try {
+      final companyId = await ApiConfig.getCompanyId();
+      final resp = await _api.listEpasses(
+          companyId: companyId,
+          page: _page,
+          pageSize: _pageSize,
+          search: _search);
+      final List<dynamic> data = (resp['data'] ?? []) as List<dynamic>;
+      _rows = data.cast<Map<String, dynamic>>();
+    } catch (_) {
+      _rows = [];
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -51,20 +84,40 @@ class _BulkPassSectionState extends State<BulkPassSection> {
                     color: isDarkMode ? Colors.white : Color(0xFF1A1D29),
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: ImageIcon(
-                      AssetImage(AllImages.arrowRight),
-                      color: isDarkMode ? Colors.white : Colors.black,
+                Row(children: [
+                  SizedBox(
+                    width: 220,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search passes...',
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                      onSubmitted: (v) {
+                        _search = v.trim();
+                        _page = 1;
+                        _loadData();
+                      },
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Refresh',
+                    onPressed: _loading ? null : _loadData,
+                    icon: Icon(Icons.refresh,
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: 'Export CSV',
+                    onPressed: _loading ? null : _exportCsv,
+                    icon: Icon(Icons.download,
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
+                ]),
               ],
             ),
 
@@ -89,93 +142,106 @@ class _BulkPassSectionState extends State<BulkPassSection> {
                     constraints: BoxConstraints(
                       minWidth: constraints.maxWidth,
                     ),
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        isDarkMode
-                            ? adminAppColors.darkSidebar
-                            : const Color(0xFFF8FAFC),
-                      ),
-                      columns: [
-                        DataColumn(
-                          label: Text(
-                            'Name',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
+                    child: _loading
+                        ? Center(
+                            child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          ))
+                        : DataTable(
+                            headingRowColor: WidgetStateProperty.all(
+                              isDarkMode
+                                  ? adminAppColors.darkSidebar
+                                  : const Color(0xFFF8FAFC),
                             ),
+                            columns: [
+                              DataColumn(
+                                label: Text(
+                                  'Name',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Destination',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Contact',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Access',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Valid From',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Valid Until',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Text(
+                                  'Status',
+                                  style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            rows: _buildTableRows(),
                           ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Destination',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Contact',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Access',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Valid From',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Valid Until',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Text(
-                            'Status',
-                            style: GoogleFonts.lexend(
-                              fontWeight: FontWeight.w600,
-                              color:
-                                  isDarkMode ? Colors.white : Color(0xFF64748B),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                      rows: _buildTableRows(),
-                    ),
                   ),
                 );
               },
@@ -187,60 +253,12 @@ class _BulkPassSectionState extends State<BulkPassSection> {
   }
 
   List<DataRow> _buildTableRows() {
-    final List<Map<String, dynamic>> data = [
-      {
-        'name': 'Abhinav Goel',
-        'location': 'Conference Room A',
-        'contact': '+91 9876543210',
-        'access': 'Level 2',
-        'validFrom': '2024-01-15',
-        'validUntil': '2024-01-16',
-        'status': 'Active',
-      },
-      {
-        'name': 'Rohit Sharma',
-        'location': 'Meeting Room B',
-        'contact': '+91 9876543211',
-        'access': 'Level 1',
-        'validFrom': '2024-01-15',
-        'validUntil': '2024-01-15',
-        'status': 'Expired',
-      },
-      {
-        'name': 'Priya Singh',
-        'location': 'Executive Office',
-        'contact': '+91 9876543212',
-        'access': 'Level 3',
-        'validFrom': '2024-01-16',
-        'validUntil': '2024-01-20',
-        'status': 'Active',
-      },
-      {
-        'name': 'Arjun Patel',
-        'location': 'Lobby Area',
-        'contact': '+91 9876543213',
-        'access': 'Level 1',
-        'validFrom': '2024-01-14',
-        'validUntil': '2024-01-14',
-        'status': 'Used',
-      },
-      {
-        'name': 'Neha Gupta',
-        'location': 'Training Room',
-        'contact': '+91 9876543214',
-        'access': 'Level 2',
-        'validFrom': '2024-01-17',
-        'validUntil': '2024-01-18',
-        'status': 'Pending',
-      },
-    ];
-
-    return data.map((item) {
+    return _rows.map((item) {
       return DataRow(
         cells: [
           DataCell(
             Text(
-              item['name'],
+              (item['name'] ?? item['fullName'] ?? '—').toString(),
               style: GoogleFonts.lexend(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -250,7 +268,7 @@ class _BulkPassSectionState extends State<BulkPassSection> {
           ),
           DataCell(
             Text(
-              item['location'],
+              (item['location'] ?? item['destination'] ?? '—').toString(),
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF64748B),
@@ -259,7 +277,7 @@ class _BulkPassSectionState extends State<BulkPassSection> {
           ),
           DataCell(
             Text(
-              item['contact'],
+              (item['contact'] ?? item['mobile'] ?? '—').toString(),
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF64748B),
@@ -274,7 +292,7 @@ class _BulkPassSectionState extends State<BulkPassSection> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                item['access'],
+                (item['access'] ?? item['accessLevel'] ?? '—').toString(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -285,7 +303,7 @@ class _BulkPassSectionState extends State<BulkPassSection> {
           ),
           DataCell(
             Text(
-              item['validFrom'],
+              (item['validFrom'] ?? item['startDate'] ?? '—').toString(),
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF64748B),
@@ -294,7 +312,7 @@ class _BulkPassSectionState extends State<BulkPassSection> {
           ),
           DataCell(
             Text(
-              item['validUntil'],
+              (item['validUntil'] ?? item['endDate'] ?? '—').toString(),
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF64748B),
@@ -305,15 +323,16 @@ class _BulkPassSectionState extends State<BulkPassSection> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: _getStatusColor(item['status']).withOpacity(0.1),
+                color: _getStatusColor((item['status'] ?? '').toString())
+                    .withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                item['status'],
+                (item['status'] ?? '—').toString(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: _getStatusColor(item['status']),
+                  color: _getStatusColor((item['status'] ?? '').toString()),
                 ),
               ),
             ),
@@ -335,6 +354,24 @@ class _BulkPassSectionState extends State<BulkPassSection> {
         return Colors.blue;
       default:
         return Colors.grey;
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    try {
+      final companyId = await ApiConfig.getCompanyId();
+      final response =
+          await _api.exportEpassesCsv(companyId: companyId, search: _search);
+      if (response.statusCode == 200) {
+        Get.snackbar('Export', 'CSV export started/downloaded',
+            snackPosition: SnackPosition.BOTTOM);
+      } else {
+        Get.snackbar('Export failed', 'Status: ${response.statusCode}',
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Export failed', e.toString(),
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

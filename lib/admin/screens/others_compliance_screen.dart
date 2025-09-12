@@ -131,7 +131,10 @@ class OthersComplianceScreen extends StatelessWidget {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () async {
+                                await controller.saveCompliances();
+                                Get.snackbar('Saved', 'Compliances updated');
+                              },
                               icon: Icon(
                                 Icons.arrow_forward,
                                 color: isDarkMode
@@ -139,7 +142,9 @@ class OthersComplianceScreen extends StatelessWidget {
                                     : adminAppColors.background,
                               ),
                               label: Text(
-                                'Save',
+                                controller.isSaving.value
+                                    ? 'Saving...'
+                                    : 'Save',
                                 style: GoogleFonts.lexend(
                                     color: isDarkMode
                                         ? Colors.black

@@ -10,7 +10,7 @@ class OthersCheckinScreen extends StatelessWidget {
   OthersCheckinScreen({super.key});
 
   final OthersCheckinController controller = Get.put(OthersCheckinController());
-  MainController mainController = Get.find();
+  final MainController mainController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +30,16 @@ class OthersCheckinScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20.0),
               child: Center(
                 child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: double.infinity),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildForm(),
-                      ],
+                    constraints:
+                        const BoxConstraints(maxWidth: double.infinity),
+                    child: Form(
+                      key: controller.formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildForm(),
+                        ],
+                      ),
                     )),
               ),
             ),
@@ -234,7 +238,9 @@ class OthersCheckinScreen extends StatelessWidget {
             width: 5,
           ),
           Expanded(
-            child: TextField(
+            child: TextFormField(
+              controller: controller.phoneController,
+              validator: controller.validatePhone,
               decoration: InputDecoration(
                 hintText: 'Phone',
                 hintStyle: GoogleFonts.lexend(
@@ -270,7 +276,28 @@ class OthersCheckinScreen extends StatelessWidget {
     return Obx(
       () {
         final isDarkMode = mainController.isDarkMode.value;
-        return TextField(
+        final controllerMap = {
+          'Full Name': controller.fullNameController,
+          'Email Id': controller.emailController,
+          'Department': controller.departmentController,
+          'Designation': controller.designationController,
+          'Enter ID no.': controller.idNumberController,
+        };
+        final tc = controllerMap[label];
+        return TextFormField(
+          controller: tc,
+          validator: (value) {
+            if (label == 'Full Name') {
+              return controller.validateRequired(value, fieldName: 'Full Name');
+            }
+            if (label == 'Email Id') {
+              return controller.validateEmail(value);
+            }
+            if (label == 'Enter ID no.') {
+              return controller.validateIdNumber(value);
+            }
+            return null;
+          },
           decoration: InputDecoration(
             hintText: label,
             hintStyle: GoogleFonts.lexend(
@@ -489,7 +516,10 @@ class OthersCheckinScreen extends StatelessWidget {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () async {
+            await controller.validateAndSave();
+            Get.snackbar('Saved', 'Visitor form updated');
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: isdarkMode
                 ? adminAppColors.darkMainButton
@@ -503,7 +533,7 @@ class OthersCheckinScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Save',
+                controller.isSaving.value ? 'Saving...' : 'Save',
                 style: GoogleFonts.lexend(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

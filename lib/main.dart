@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialRoute:  adminRoutes.adminAppRoutes.main,
+      initialRoute:  adminRoutes.adminAppRoutes.adminLoginScreen,
       getPages: [
         ...RouteGenerator.getRoutes(),
         ...adminRoutes.adminAppRoutes.routes,

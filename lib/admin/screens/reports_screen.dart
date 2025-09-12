@@ -38,13 +38,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical:20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(
-                  height: 20,
-                ),
+                
                 const StatsCards(
                     cardNames: ['visitors', 'checkin', 'checkout', 'monthly']),
                 const SizedBox(

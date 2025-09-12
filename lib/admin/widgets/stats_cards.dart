@@ -53,13 +53,8 @@ class StatsCards extends StatelessWidget {
     });
   }
 
-  Widget _buildCardByName(
-      String name,
-      double iconSize,
-      double titleSize,
-      double valueSize,
-      bool isDarkMode,
-      DashboardController controller) {
+  Widget _buildCardByName(String name, double iconSize, double titleSize,
+      double valueSize, bool isDarkMode, DashboardController controller) {
     switch (name.toLowerCase()) {
       case 'visitors':
         return Obx(() => _buildStatCard(
@@ -95,16 +90,16 @@ class StatsCards extends StatelessWidget {
             valueSize,
             isDarkMode));
       case 'monthly':
-        return _buildStatCard(
+        return Obx(() => _buildStatCard(
             "Monthly Visitors",
-            "8928", // This can be updated later if you have an API for it
+            controller.monthlyVisitors.value.toString(),
             AssetImage(AllImages.peopleIcon),
             isDarkMode ? adminAppColors.secondary : const Color(0xFF3B82F6),
             isDarkMode ? Color(0xff325A72) : const Color(0xFFF0FAF4),
             iconSize,
             titleSize,
             valueSize,
-            isDarkMode);
+            isDarkMode));
       case 'add':
         return _buildAddVisitorCard(iconSize, titleSize, isDarkMode);
       default:

@@ -30,6 +30,8 @@ class MainController extends GetxController {
   final Rx<Visitor?> _selectedVisitor = Rx<Visitor?>(null);
   final Rx<Employee?> _selectedEmployee = Rx<Employee?>(null);
   final Rx<String?> _selectedMonth = Rx<String?>(null);
+  final Rx<Map<String, dynamic>?> _selectedReportData =
+      Rx<Map<String, dynamic>?>(null);
   final RxBool isNotificationVisible = false.obs;
   final RxBool isDarkMode = false.obs;
   final RxBool _lastSystemTheme = false.obs; // Track last detected system theme
@@ -164,6 +166,7 @@ class MainController extends GetxController {
   Visitor? get selectedVisitor => _selectedVisitor.value;
   String? get selectedMonth => _selectedMonth.value;
   Employee? get selectedEmployee => _selectedEmployee.value;
+  Map<String, dynamic>? get selectedReportData => _selectedReportData.value;
 
   final DashboardScreen _dashboardScreen = DashboardScreen();
 
@@ -213,6 +216,22 @@ class MainController extends GetxController {
 
   void selectReportsView(String month) {
     _selectedMonth.value = month;
+    _selectedReportData.value = null; // Clear report data when using old method
+    _selectedIndex.value = 8;
+  }
+
+  void setSelectedReportData({
+    required String title,
+    required int count,
+    required String date,
+    required String filter,
+  }) {
+    _selectedReportData.value = {
+      'title': title,
+      'count': count,
+      'date': date,
+      'filter': filter,
+    };
     _selectedIndex.value = 8;
   }
 
