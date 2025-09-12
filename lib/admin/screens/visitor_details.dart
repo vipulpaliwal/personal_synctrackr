@@ -8,6 +8,7 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/visitor_details_controller.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:synctrackr/admin/screens/admin_mobile_no_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';

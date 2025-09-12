@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:synctrackr/admin/config/api_config.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
@@ -199,17 +201,36 @@ class ApiService {
           }
           throw Exception('Invalid response format');
         } else {
-          throw Exception('Failed to post data: ${response.statusCode}');
+          // Do not retry for HTTP errors; surface server message
+          try {
+            final body = json.decode(response.body);
+            final message = body is Map<String, dynamic>
+                ? (body['message'] ??
+                    body['error'] ??
+                    body['errors']?.toString())
+                : null;
+            throw Exception(message ?? 'Failed: HTTP ${response.statusCode}');
+          } catch (_) {
+            throw Exception('Failed: HTTP ${response.statusCode}');
+          }
         }
-      } catch (e) {
+      } on TimeoutException catch (_) {
         retryCount++;
         if (retryCount >= ApiConfig.maxRetries) {
           throw Exception(
-              'Network error after ${ApiConfig.maxRetries} retries: $e');
+              'Network timeout after ${ApiConfig.maxRetries} retries');
         }
-
-        // Wait before retrying
         await Future.delayed(ApiConfig.retryDelay);
+      } on SocketException catch (_) {
+        retryCount++;
+        if (retryCount >= ApiConfig.maxRetries) {
+          throw Exception(
+              'Network error after ${ApiConfig.maxRetries} retries');
+        }
+        await Future.delayed(ApiConfig.retryDelay);
+      } catch (e) {
+        // Non-network error; do not retry
+        rethrow;
       }
     }
 
@@ -249,6 +270,69 @@ class ApiService {
     } catch (e) {
       // Network/timeout errors
       throw Exception('Network error: Unable to connect to server');
+    }
+  }
+
+  // ==================== OTP (MOBILE VERIFICATION) ====================
+
+  /// Send OTP to a mobile number
+  /// POST /api/send-otp { phone }
+  Future<Map<String, dynamic>> sendOtp({required String phone}) async {
+    try {
+      final response = await _post('/send-otp', {
+        'phone': phone,
+      });
+
+      if (response['success'] == true && response['token'] != null) {
+        return response;
+      }
+      throw Exception(response['message'] ?? 'Failed to send OTP');
+    } catch (e) {
+      throw Exception('Error sending OTP: $e');
+    }
+  }
+
+  /// Verify OTP with token
+  /// POST /api/verify-otp { token, otp }
+  Future<Map<String, dynamic>> verifyOtp({
+    required String token,
+    required String otp,
+  }) async {
+    try {
+      // Match the OTP type to what's inside the JWT payload to satisfy strict equality on backend
+      dynamic otpValue = otp.trim();
+      try {
+        final parts = token.split('.');
+        if (parts.length == 3) {
+          final payloadJson =
+              utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final payload = json.decode(payloadJson);
+          final payloadOtp =
+              (payload is Map<String, dynamic>) ? payload['otp'] : null;
+          if (payloadOtp is num) {
+            // Backend stored otp as number; send number
+            otpValue = int.parse(otp.trim());
+          } else {
+            // Backend stored otp as string; send string (preserve leading zeros)
+            otpValue = otp.trim();
+          }
+        }
+      } catch (_) {
+        // Fallback to trimmed string if decoding fails
+        otpValue = otp.trim();
+      }
+
+      final response = await _post('/verify-otp', {
+        'token': token,
+        'otp': otpValue,
+      });
+
+      if (response['success'] == true) {
+        return response;
+      }
+      throw Exception(response['message'] ?? 'OTP verification failed');
+    } catch (e) {
+      throw Exception('Error verifying OTP: $e');
     }
   }
 
@@ -453,6 +537,17 @@ class ApiService {
     }
   }
 
+  /// Fetch enriched visitor (to check status before  manualcheckout)
+  Future<Map<String, dynamic>?> getEnrichedVisitorIfAny(
+      String visitorId) async {
+    try {
+      final resp = await _get('/admin/visitors/$visitorId/enriched');
+      return resp;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ==================== EMPLOYEE LIST (STAFF) API ====================
 
   /// Fetch employees (staff) list for admin
@@ -601,7 +696,6 @@ class ApiService {
       throw Exception('Error fetching stats series: $e');
     }
   }
-
 
   Future<http.Response> getHeadDetails(String headId,
       {String? companyId}) async {

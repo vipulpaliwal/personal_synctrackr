@@ -3,13 +3,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/visitors_controller.dart';
-import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:synctrackr/admin/screens/admin_mobile_no_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
-import 'package:synctrackr/admin/screens/visitor_dashboard.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
-import 'package:synctrackr/admin/widgets/custom_pagination.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';
 import 'package:synctrackr/admin/widgets/stats_cards.dart';
 
@@ -30,7 +27,8 @@ class VisitorsScreen extends StatelessWidget {
   Widget _buildMainContent(BuildContext context, BoxConstraints constraints,
       VisitorsController controller, MainController mainController) {
     final isTabletOrWeb = constraints.maxWidth >= 768;
-    final isDesktop = constraints.maxWidth >= 1024;
+    final isDesktop =
+        constraints.maxWidth >= 1024; // ignore: unused_local_variable
 
     return Obx(() {
       final isDarkMode = mainController.isDarkMode.value;
@@ -101,7 +99,18 @@ class VisitorsScreen extends StatelessWidget {
               ),
               isTabletOrWeb,
               () {
-                Get.to(AdminMobileNoScreen());
+                final selected = mainController.selectedVisitor;
+                if (selected == null) {
+                  Get.snackbar(
+                    'Select a Visitor',
+                    'Please select a visitor first to proceed with manual check-out.',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                  return;
+                }
+                Get.to(const AdminMobileNoScreen(), arguments: {
+                  'visitorId': selected.id.toString(),
+                });
               },
               mainController,
             ),
