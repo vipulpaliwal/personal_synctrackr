@@ -19,6 +19,7 @@ import 'package:synctrackr/admin/screens/visitor_head_update_person.dart';
 import 'package:synctrackr/admin/screens/visitors.dart';
 import 'package:synctrackr/admin/screens/visitors_heads_screen.dart';
 import 'package:synctrackr/admin/utils/responsive.dart';
+import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'dart:async'; // Added for Timer
 
 class MainController extends GetxController {
@@ -41,6 +42,8 @@ class MainController extends GetxController {
   void onInit() {
     super.onInit();
     pageController = PageController();
+    // Initialize DashboardController to prevent "not found" errors
+    Get.lazyPut(() => DashboardController());
     // Automatically detect system theme and set initial theme
     _detectSystemTheme();
 

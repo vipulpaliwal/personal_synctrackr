@@ -49,6 +49,9 @@ class _ManualCheckOutScreenState extends State<ManualCheckOutScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final args = Get.arguments as Map<String, dynamic>?;
+    final message = args?['message']?.toString() ?? 'Checked Out';
+    final isCheckIn = args?['isCheckIn'] == true;
 
     return Scaffold(
       backgroundColor:
@@ -100,7 +103,7 @@ class _ManualCheckOutScreenState extends State<ManualCheckOutScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Checked Out',
+                            message,
                             style: GoogleFonts.poppins(
                               color: Colors.green[600],
                               fontSize: 40,
@@ -109,7 +112,9 @@ class _ManualCheckOutScreenState extends State<ManualCheckOutScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "You're ready to check-in",
+                            isCheckIn
+                                ? "Successfully checked in"
+                                : "Successfully checked out",
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               color: isDark ? Colors.white : Colors.black87,

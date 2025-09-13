@@ -537,6 +537,19 @@ class ApiService {
     }
   }
 
+  /// Manual check-in for a visitor (enriched endpoint)
+  /// POST /api/admin/visitors/check-in
+  Future<bool> manualCheckinEnriched(String visitorId) async {
+    try {
+      final response = await _post('/admin/visitors/check-in', {
+        'visitorId': visitorId,
+      });
+      return response['success'] == true;
+    } catch (e) {
+      throw Exception('Error during manual check-in: $e');
+    }
+  }
+
   /// Fetch enriched visitor (to check status before  manualcheckout)
   Future<Map<String, dynamic>?> getEnrichedVisitorIfAny(
       String visitorId) async {

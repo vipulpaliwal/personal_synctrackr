@@ -1,270 +1,3 @@
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
-// import 'package:synctrackr/admin/utils/colors.dart';
-// import 'package:synctrackr/admin/utils/images.dart';
-
-// class LiveFeed extends StatelessWidget {
-//   const LiveFeed({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final DashboardController controller = Get.find();
-//     return Opacity(
-//       opacity: 0.8,
-//       child: Container(
-//         padding: const EdgeInsets.all(20),
-//         decoration: BoxDecoration(
-//           color: Colors.white,
-//           borderRadius: BorderRadius.circular(12),
-//           boxShadow: [
-//             BoxShadow(
-//               color: AppColors.textPrimary.withOpacity(0.05),
-//               blurRadius: 10,
-//               offset: const Offset(0, 2),
-//             ),
-//           ],
-//         ),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               children: [
-//                 Text(
-//                   'Live Feed',
-//                   style: GoogleFonts.inter(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.w600,
-//                     color: AppColors.textPrimary,
-//                   ),
-//                 ),
-//                 const Spacer(),
-//                 // const Icon(CupertinoIcons.arrow_branch, color: Color(0xFF6B7280)),
-//                 ImageIcon(AssetImage(AllImages.arrowRight))
-//               ],
-//             ),
-//             const SizedBox(height: 8),
-//             Text(
-//               'Recent Visits',
-//               style: GoogleFonts.inter(
-//                 fontSize: 14,
-//                 color: const Color(0xFF6B7280),
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//             Obx(() => Column(
-//                   children: controller.liveFeed
-//                       .map((item) => _buildLiveFeedItem(item))
-//                       .toList(),
-//                 )),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildLiveFeedItem(Map<String, String> item) {
-//     return Container(
-//       margin: const EdgeInsets.only(bottom: 12),
-//       child: Row(
-//         children: [
-//           Container(
-//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-//             decoration: BoxDecoration(
-//               color: item['status'] == 'IN'
-//                   ? const Color(0xFFD1FAE5)
-//                   : const Color(0xFFFEE2E2),
-//               borderRadius: BorderRadius.circular(4),
-//             ),
-//             child: Text(
-//               item['status']!,
-//               style: GoogleFonts.inter(
-//                 fontSize: 12,
-//                 fontWeight: FontWeight.w500,
-//                 color: item['status'] == 'IN'
-//                     ? const Color(0xFF065F46)
-//                     : const Color(0xFF991B1B),
-//               ),
-//             ),
-//           ),
-//           const SizedBox(width: 12),
-//           Expanded(
-//             child: Text(
-//               item['name']!,
-//               style: GoogleFonts.inter(
-//                 fontSize: 14,
-//                 fontWeight: FontWeight.w500,
-//                 color: AppColors.textPrimary,
-//               ),
-//             ),
-//           ),
-//           const Spacer(),
-//           Text(
-//             item['time']!,
-//             style: GoogleFonts.inter(
-//               fontSize: 12,
-//               color: const Color(0xFF6B7280),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-//update1
-
-// import 'dart:ui'; // <- for ImageFilter
-
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
-// import 'package:synctrackr/admin/controllers/main_controller.dart';
-// import 'package:synctrackr/admin/utils/colors.dart';
-// import 'package:synctrackr/admin/utils/images.dart';
-
-// class LiveFeed extends StatelessWidget {
-//   const LiveFeed({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final DashboardController controller = Get.find();
-//     final MainController mainController = Get.find();
-//     return Obx(() {
-//       final isDarkMode = mainController.isDarkMode.value;
-//       return ClipRRect(
-//         borderRadius: BorderRadius.circular(20),
-//         child: BackdropFilter(
-//           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20), // blur effect
-//           child: Container(
-//             padding: const EdgeInsets.all(20),
-//             decoration: BoxDecoration(
-//               color: isDarkMode
-//                   ? adminAppColors.darkCard.withOpacity(0.5)
-//                   : Colors.white.withOpacity(0.35), // semi-transparent bg
-//               borderRadius: BorderRadius.circular(20),
-//               border: Border.all(
-//                 color: isDarkMode
-//                     ? adminAppColors.darkBorder
-//                     : Colors.white, // light glass border
-//                 width: 4,
-//               ),
-//             ),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Row(
-//                   children: [
-//                     Text(
-//                       'Live Feed',
-//                       style: GoogleFonts.lexend(
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.w600,
-//                         color: isDarkMode
-//                             ? adminAppColors.darkTextPrimary
-//                             : adminAppColors.textPrimary,
-//                       ),
-//                     ),
-//                     const Spacer(),
-//                     ImageIcon(
-//                       AssetImage(AllImages.arrowRight),
-//                       color: isDarkMode
-//                           ? adminAppColors.darkTextPrimary
-//                           : adminAppColors.textPrimary,
-//                     ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 8),
-//                 Text(
-//                   'Recent Visits',
-//                   style: GoogleFonts.inter(
-//                     fontSize: 14,
-//                     color: isDarkMode
-//                         ? adminAppColors.darkTextSecondary
-//                         : const Color(0xFF6B7280),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 16),
-//                 Obx(() => Column(
-//                       children: controller.liveFeed
-//                           .map((item) => _buildLiveFeedItem(item, isDarkMode))
-//                           .toList(),
-//                     )),
-//               ],
-//             ),
-//           ),
-//         ),
-//       );
-//     });
-//   }
-
-//   Widget _buildLiveFeedItem(Map<String, String> item, bool isDarkMode) {
-//     return Container(
-//       margin: const EdgeInsets.only(bottom: 12),
-//       child: Row(
-//         children: [
-//           Container(
-//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-//             decoration: BoxDecoration(
-//               color: item['status'] == 'IN'
-//                   ? (isDarkMode
-//                       ? adminAppColors.darkSuccess.withOpacity(0.2)
-//                       : const Color(0xFFD1FAE5))
-//                   : (isDarkMode
-//                       ? adminAppColors.darkWarning.withOpacity(0.2)
-//                       : const Color(0xFFFEE2E2)),
-//               borderRadius: BorderRadius.circular(4),
-//             ),
-//             child: Text(
-//               item['status']!,
-//               style: GoogleFonts.inter(
-//                 fontSize: 12,
-//                 fontWeight: FontWeight.w500,
-//                 color: item['status'] == 'IN'
-//                     ? (isDarkMode
-//                         ? adminAppColors.darkSuccess
-//                         : const Color(0xFF065F46))
-//                     : (isDarkMode
-//                         ? adminAppColors.darkWarning
-//                         : const Color(0xFF991B1B)),
-//               ),
-//             ),
-//           ),
-//           const SizedBox(width: 12),
-//           Expanded(
-//             child: Text(
-//               item['name']!,
-//               style: GoogleFonts.inter(
-//                 fontSize: 14,
-//                 fontWeight: FontWeight.w500,
-//                 color: isDarkMode
-//                     ? adminAppColors.darkTextPrimary
-//                     : adminAppColors.textPrimary,
-//               ),
-//             ),
-//           ),
-//           const Spacer(),
-//           Text(
-//             item['time']!,
-//             style: GoogleFonts.inter(
-//               fontSize: 12,
-//               color: isDarkMode
-//                   ? adminAppColors.darkTextSecondary
-//                   : const Color(0xFF6B7280),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-//update 2
-
 import 'dart:ui'; // <- for ImageFilter
 
 import 'package:flutter/material.dart';
@@ -274,6 +7,7 @@ import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
+import 'package:synctrackr/admin/widgets/employee_list.dart';
 
 class LiveFeed extends StatelessWidget {
   const LiveFeed({super.key});
@@ -353,8 +87,8 @@ class LiveFeed extends StatelessWidget {
 
                   // Compute filtered list once
                   final filteredFeed = controller.liveFeedItems.where((item) {
-                    final status = item['status']?.toUpperCase();
-                    return status == 'IN' || status == 'OUT' || status == 'in' || status == 'out';
+                    final status = item['status']?.toString().toLowerCase();
+                    return status == 'checked-in' || status == 'checked-out';
                   }).toList();
 
                   // If no data yet, fall back to loading/error/empty
@@ -450,7 +184,7 @@ class LiveFeed extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              item['status']!,
+              _getStatusDisplayText(item['status']!),
               style: GoogleFonts.lexend(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -464,7 +198,7 @@ class LiveFeed extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name']!,
+                  capitalizeWords(item['name']!),
                   style: GoogleFonts.lexend(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -503,33 +237,46 @@ class LiveFeed extends StatelessWidget {
     );
   }
 
+  String _getStatusDisplayText(String status) {
+    switch (status.toLowerCase()) {
+      case 'checked-in':
+        return 'IN';
+      case 'checked-out':
+        return 'OUT';
+      case 'pending':
+        return 'PENDING';
+      case 'accepted':
+        return 'ACCEPTED';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
   Color _getStatusColor(String status, bool isDarkMode, bool isBackground) {
-    switch (status.toUpperCase()) {
-      case 'IN':
+    switch (status.toLowerCase()) {
+      case 'checked-in':
+      case 'in':
         return isBackground
             ? (isDarkMode
-                ? adminAppColors.darkSuccess.withOpacity(0.2)
+                ? Colors.green.withOpacity(0.2)
                 : const Color(0xFFD1FAE5))
-            : (isDarkMode
-                ? adminAppColors.darkSuccess
-                : const Color(0xFF065F46));
-      case 'OUT':
+            : (isDarkMode ? Colors.green : const Color(0xFF065F46));
+      case 'checked-out':
+      case 'out':
         return isBackground
             ? (isDarkMode
-                ? adminAppColors.darkWarning.withOpacity(0.2)
+                ? Colors.red.withOpacity(0.2)
                 : const Color(0xFFFEE2E2))
-            : (isDarkMode
-                ? adminAppColors.darkWarning
-                : const Color(0xFF991B1B));
-      case 'ACCEPTED':
+            : (isDarkMode ? Colors.red : const Color(0xFF991B1B));
+      case 'accepted':
         return isBackground
             ? (isDarkMode
                 ? adminAppColors.darkSuccess.withOpacity(0.2)
                 : const Color(0xFFD1FAE5))
             : (isDarkMode
                 ? adminAppColors.darkSuccess
-                : const Color(0xFF065F46));
-      case 'PENDING':
+                : const Color(0xFF30BE824D));
+      case 'pending':
         return isBackground
             ? (isDarkMode
                 ? adminAppColors.darkWarning.withOpacity(0.2)

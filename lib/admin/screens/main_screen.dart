@@ -47,7 +47,7 @@ class MainScreen extends StatelessWidget {
               /// Background Image
               Positioned.fill(
                 child: Opacity(
-                  opacity: isDarkMode?0.5: 0.4,
+                  opacity: isDarkMode?0.5: 0.3,
                   child: Image.asset(
                     AllImages.mainbg,
                     fit: BoxFit.fill,

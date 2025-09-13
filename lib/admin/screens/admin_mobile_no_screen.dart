@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:get/get.dart';
-import 'package:synctrackr/admin/screens/admin_otp_verification_screen.dart';
 import 'package:synctrackr/core/constants/app_barrels.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/core/widgets/primary_btn.dart';
+import 'package:synctrackr/admin/routes/app_routes.dart';
 
 class AdminMobileNoScreen extends StatefulWidget {
   const AdminMobileNoScreen({super.key});
@@ -58,8 +58,10 @@ class _MobileNoScreenState extends State<AdminMobileNoScreen> {
       final args = Get.arguments as Map<String, dynamic>?;
       final visitorId =
           args != null ? (args['visitorId']?.toString() ?? '') : '';
-      Get.to(const AdminOtpVerificationScreen(), arguments: {
+      final action = args != null ? (args['action']?.toString() ?? '') : '';
+      Get.toNamed(adminAppRoutes.adminOtpVerificationScreen, arguments: {
         'visitorId': visitorId,
+        'action': action,
         'phone': phone,
         'otpToken': token,
       });

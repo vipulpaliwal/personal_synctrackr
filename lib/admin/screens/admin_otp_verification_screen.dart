@@ -5,6 +5,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:synctrackr/core/constants/app_barrels.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/core/widgets/primary_btn.dart';
+import 'package:synctrackr/admin/routes/app_routes.dart';
 
 class AdminOtpVerificationScreen extends StatefulWidget {
   const AdminOtpVerificationScreen({super.key});
@@ -83,6 +84,7 @@ class _AdminOtpVerificationScreenState
   Future<void> _submitOtp() async {
     final args = Get.arguments as Map<String, dynamic>?;
     final visitorId = args != null ? (args['visitorId']?.toString() ?? '') : '';
+    final action = args != null ? (args['action']?.toString() ?? '') : '';
     final token = _otpToken ?? '';
 
     if (_otp.length < 4) {
@@ -122,29 +124,69 @@ class _AdminOtpVerificationScreenState
         return;
       }
 
-      // If visitorId provided, enforce status and attempt manual checkout
-      if (visitorId.isNotEmpty) {
+      // If visitorId provided, enforce status and perform requested action
+      if (visitorId.isNotEmpty &&
+          (action == 'checkout' || action == 'checkin')) {
         final enriched = await api.getEnrichedVisitorIfAny(visitorId);
         final status = enriched != null
             ? (enriched['data']?['status']?.toString() ?? '')
             : '';
-        if (status != 'checked-in') {
-          Get.snackbar('Cannot Check Out', 'Visitor is not checked in.');
+
+        if (action == 'checkout') {
+          if (status != 'checked-in') {
+            Get.snackbar('Cannot Check Out', 'Visitor is not checked in.');
+            return;
+          }
+          try {
+            final ok = await api.manualCheckout(visitorId);
+            if (ok) {
+              Get.snackbar('Success', 'Visitor checked out manually.');
+              // Navigate to completion screen for check-out
+              Get.offAllNamed(adminAppRoutes.manualCheckoutComplete,
+                  arguments: {
+                    'message': 'Checked Out',
+                    'isCheckIn': false,
+                  });
+            } else {
+              Get.snackbar(
+                  'Checkout Failed', 'Could not complete manual check-out.');
+            }
+          } catch (e) {
+            Get.snackbar('Checkout Failed', e.toString());
+          }
           return;
         }
 
-        try {
-          final ok = await api.manualCheckout(visitorId);
-          if (ok) {
-            Get.snackbar('Success', 'Visitor checked out manually.');
-          } else {
+        if (action == 'checkin') {
+          if (status == 'checked-in') {
             Get.snackbar(
-                'Checkout Failed', 'Could not complete manual check-out.');
+                'Already Checked In', 'Visitor is already checked in.');
+            return;
           }
-        } catch (e) {
-          Get.snackbar('Checkout Failed', e.toString());
+          if (status == 'null') {
+            Get.snackbar(
+                'Cannot Check In', 'Visitor has not been accepted yet.');
+            return;
+          }
+          try {
+            final ok = await api.manualCheckinEnriched(visitorId);
+            if (ok) {
+              Get.snackbar('Success', 'Visitor checked in manually.');
+              // Navigate to completion screen for check-in
+              Get.offAllNamed(adminAppRoutes.manualCheckoutComplete,
+                  arguments: {
+                    'message': 'Checked IN',
+                    'isCheckIn': true,
+                  });
+            } else {
+              Get.snackbar(
+                  'Check-In Failed', 'Could not complete manual check-in.');
+            }
+          } catch (e) {
+            Get.snackbar('Check-In Failed', e.toString());
+          }
+          return;
         }
-        return;
       }
 
       // No visitor context: just success of OTP

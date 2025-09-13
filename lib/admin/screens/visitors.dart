@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/visitors_controller.dart';
-import 'package:synctrackr/admin/screens/admin_mobile_no_screen.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';
 import 'package:synctrackr/admin/widgets/stats_cards.dart';
+import 'package:synctrackr/admin/routes/app_routes.dart';
 
 class VisitorsScreen extends StatelessWidget {
   const VisitorsScreen({super.key});
@@ -17,6 +18,7 @@ class VisitorsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final VisitorsController controller = Get.put(VisitorsController());
     final MainController mainController = Get.find();
+     Get.put(DashboardController());
 
     return LayoutBuilder(builder: (context, constraints) {
       return _buildMainContent(
@@ -85,7 +87,21 @@ class VisitorsScreen extends StatelessWidget {
                 color: isDarkMode ? adminAppColors.secondary : Colors.black,
               ),
               isTabletOrWeb,
-              () {},
+              () {
+                final selected = mainController.selectedVisitor;
+                if (selected == null) {
+                  Get.snackbar(
+                    'Select a Visitor',
+                    'Please select a visitor first to proceed with manual check-in.',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                  return;
+                }
+                Get.toNamed(adminAppRoutes.adminMobileNoScreen, arguments: {
+                  'visitorId': selected.id.toString(),
+                  'action': 'checkin',
+                });
+              },
               mainController,
             ),
           ),
@@ -108,8 +124,9 @@ class VisitorsScreen extends StatelessWidget {
                   );
                   return;
                 }
-                Get.to(const AdminMobileNoScreen(), arguments: {
+                Get.toNamed(adminAppRoutes.adminMobileNoScreen, arguments: {
                   'visitorId': selected.id.toString(),
+                  'action': 'checkout',
                 });
               },
               mainController,
