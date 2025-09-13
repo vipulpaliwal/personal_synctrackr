@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synctrackr/admin/models/visitor_heads_model.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/admin/config/api_config.dart';
@@ -11,6 +13,7 @@ class VisitorsHeadsController extends GetxController {
   final int itemsPerPage = 10;
 
   var isLoading = true.obs;
+  var errorMessage = RxnString();
   var totalHeads = 0.obs;
   var totalDepartments = 0.obs;
   final RxList<Employee> employees = <Employee>[].obs;
@@ -22,12 +25,14 @@ class VisitorsHeadsController extends GetxController {
   }
 
   Future<void> _initialize() async {
+    await _loadHeadsFromCache();
     await fetchHeads();
   }
 
   Future<void> fetchHeads() async {
     try {
       isLoading(true);
+      errorMessage.value = null;
       final companyId = await ApiConfig.getCompanyId();
       final result = await _apiService.getHeads(companyId);
 
@@ -36,11 +41,41 @@ class VisitorsHeadsController extends GetxController {
       
       final List<dynamic> data = result['data'];
       employees.value = data.map((json) => Employee.fromJson(json)).toList();
+      await _saveHeadsToCache(result);
 
     } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch heads: $e');
+      errorMessage.value = 'Failed to fetch heads: $e';
+      if (employees.isEmpty) {
+        await _loadHeadsFromCache();
+      }
     } finally {
       isLoading(false);
+    }
+  }
+
+  Future<void> _saveHeadsToCache(Map<String, dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = jsonEncode(data);
+      await prefs.setString('visitorHeadsCache', encodedData);
+    } catch (e) {
+      print('Error saving visitor heads to cache: $e');
+    }
+  }
+
+  Future<void> _loadHeadsFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? encodedData = prefs.getString('visitorHeadsCache');
+      if (encodedData != null) {
+        final Map<String, dynamic> decodedData = jsonDecode(encodedData);
+        totalHeads.value = decodedData['totalHeads'];
+        totalDepartments.value = decodedData['totalDepartments'];
+        final List<dynamic> data = decodedData['data'];
+        employees.value = data.map((json) => Employee.fromJson(json)).toList();
+      }
+    } catch (e) {
+      print('Error loading visitor heads from cache: $e');
     }
   }
 

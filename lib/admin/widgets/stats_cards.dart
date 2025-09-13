@@ -62,7 +62,7 @@ class StatsCards extends StatelessWidget {
             controller.todaysVisitors.value.toString(),
             AssetImage(AllImages.peopleIcon),
             isDarkMode ? adminAppColors.secondary : const Color(0xFF3B82F6),
-            isDarkMode ? Color(0xff2D5073) : const Color(0xFFEFF1FD),
+            isDarkMode ? const Color(0xff2D5073) : const Color(0xFFEFF1FD),
             iconSize,
             titleSize,
             valueSize,
@@ -73,7 +73,7 @@ class StatsCards extends StatelessWidget {
             controller.todaysCheckins.value.toString(),
             AssetImage(AllImages.exportIcon),
             isDarkMode ? adminAppColors.secondary : const Color(0xFF3B82F6),
-            isDarkMode ? Color(0xff325A72) : const Color(0xFFF0F6FF),
+            isDarkMode ? const Color(0xff325A72) : const Color(0xFFF0F6FF),
             iconSize,
             titleSize,
             valueSize,
@@ -84,7 +84,7 @@ class StatsCards extends StatelessWidget {
             controller.todaysCheckouts.value.toString(),
             AssetImage(AllImages.outIcon),
             isDarkMode ? adminAppColors.secondary : const Color(0xFF3B82F6),
-            isDarkMode ? Color(0xff2D5073) : const Color(0xFFEFF1FD),
+            isDarkMode ? const Color(0xff2D5073) : const Color(0xFFEFF1FD),
             iconSize,
             titleSize,
             valueSize,
@@ -95,7 +95,7 @@ class StatsCards extends StatelessWidget {
             controller.monthlyVisitors.value.toString(),
             AssetImage(AllImages.peopleIcon),
             isDarkMode ? adminAppColors.secondary : const Color(0xFF3B82F6),
-            isDarkMode ? Color(0xff325A72) : const Color(0xFFF0FAF4),
+            isDarkMode ? const Color(0xff325A72) : const Color(0xFFF0FAF4),
             iconSize,
             titleSize,
             valueSize,
@@ -206,4 +206,5 @@ class StatsCards extends StatelessWidget {
       ),
     );
   }
+
 }

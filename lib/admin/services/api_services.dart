@@ -610,23 +610,45 @@ class ApiService {
 
   /// Fetch visitors for a specific company
   /// GET /api/admin/:companyId/visitors
-  Future<List<Visitor>> getVisitors(String companyId) async {
-    try {
-      final response = await _get('/admin/$companyId/visitors');
+  Stream<List<Visitor>> getVisitors(String companyId) {
+    late StreamController<List<Visitor>> controller;
+    Timer? timer;
 
-      if (response['success'] == true && response['data'] != null) {
-        List<dynamic> data = response['data'];
-        final items = data
-            .where((item) => item != null) // Filter out null items
-            .map((item) => Visitor.fromJson(item as Map<String, dynamic>))
-            .toList();
-        return items;
-      } else {
-        throw Exception('Failed to fetch visitors data');
+    Future<void> fetch() async {
+      try {
+        final response = await _get('/admin/$companyId/visitors');
+        if (response['success'] == true && response['data'] != null) {
+          List<dynamic> data = response['data'];
+          final items = data
+              .where((item) => item != null)
+              .map((item) => Visitor.fromJson(item as Map<String, dynamic>))
+              .toList();
+          if (!controller.isClosed) {
+            controller.add(items);
+          }
+        } else {
+          if (!controller.isClosed) {
+            controller.addError('Failed to fetch visitors data');
+          }
+        }
+      } catch (e) {
+        if (!controller.isClosed) {
+          controller.addError('Error fetching visitors: $e');
+        }
       }
-    } catch (e) {
-      throw Exception('Error fetching visitors: $e');
     }
+
+    controller = StreamController<List<Visitor>>(
+      onListen: () {
+        fetch();
+        timer = Timer.periodic(const Duration(seconds: 5), (_) => fetch());
+      },
+      onCancel: () {
+        timer?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Fetch enriched visitor details

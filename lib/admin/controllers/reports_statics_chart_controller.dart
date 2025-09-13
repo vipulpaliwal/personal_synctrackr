@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synctrackr/admin/config/api_config.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
@@ -59,6 +61,7 @@ class ReportsStaticsChartController extends GetxController {
 
   Future<void> _initialize() async {
     companyId = await ApiConfig.getCompanyId();
+    await _loadChartDataFromCache(); // Load cached data first
     fetchChartData();
     selectedFilter.listen((_) => fetchChartData());
   }
@@ -180,8 +183,13 @@ class ReportsStaticsChartController extends GetxController {
           ?.assignAll(formattedIndividualCounts);
       rawData[selectedFilter.value]?.assignAll(preparedRaw);
       totalCounts[selectedFilter.value] = "";
+      await _saveChartDataToCache();
     } catch (e) {
       errorMessage(e.toString());
+      // If API fails, try to load from cache if list is empty
+      if (chartData[selectedFilter.value]?.isEmpty ?? true) {
+        await _loadChartDataFromCache();
+      }
     } finally {
       isLoading(false);
     }
@@ -254,5 +262,53 @@ class ReportsStaticsChartController extends GetxController {
       'Dec'
     ];
     return monthNames[month];
+  }
+
+  Future<void> _saveChartDataToCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final dataToCache = {
+        'chartData': chartData.map((key, value) => MapEntry(key, value.toList())),
+        'chartLabels': chartLabels.map((key, value) => MapEntry(key, value.toList())),
+        'chartIndividualCounts': chartIndividualCounts.map((key, value) => MapEntry(key, value.toList())),
+        'rawData': rawData.map((key, value) => MapEntry(key, value.toList())),
+      };
+      final String encodedData = jsonEncode(dataToCache);
+      await prefs.setString('reportsChartCache', encodedData);
+    } catch (e) {
+      print('Error saving reports chart data to cache: $e');
+    }
+  }
+
+  Future<void> _loadChartDataFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? encodedData = prefs.getString('reportsChartCache');
+      if (encodedData != null) {
+        final Map<String, dynamic> decodedData = jsonDecode(encodedData);
+        
+        final cachedChartData = Map<String, List<dynamic>>.from(decodedData['chartData']);
+        cachedChartData.forEach((key, value) {
+          chartData[key]?.assignAll(value.map((e) => e as double).toList());
+        });
+
+        final cachedChartLabels = Map<String, List<dynamic>>.from(decodedData['chartLabels']);
+        cachedChartLabels.forEach((key, value) {
+          chartLabels[key]?.assignAll(value.map((e) => e as String).toList());
+        });
+
+        final cachedChartIndividualCounts = Map<String, List<dynamic>>.from(decodedData['chartIndividualCounts']);
+        cachedChartIndividualCounts.forEach((key, value) {
+          chartIndividualCounts[key]?.assignAll(value.map((e) => e as String).toList());
+        });
+
+        final cachedRawData = Map<String, List<dynamic>>.from(decodedData['rawData']);
+        cachedRawData.forEach((key, value) {
+          rawData[key]?.assignAll(value.map((e) => Map<String, dynamic>.from(e)).toList());
+        });
+      }
+    } catch (e) {
+      print('Error loading reports chart data from cache: $e');
+    }
   }
 }

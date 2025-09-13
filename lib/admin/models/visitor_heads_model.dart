@@ -30,7 +30,7 @@ class Employee {
       department: json['dept'] ?? 'Unknown',
       position: json['designation'] ?? 'Unknown',
       email: json['email'] ?? 'Unknown',
-      phone: json['phone'] ?? 'Unknown',
+      phone: json['phone']?.toString() ?? 'Unknown',
       avatar: 'assets/images/adminImages/avatar1.png', // Default avatar
       status: json['status'] ?? 'Free',
       statusColor: (json['status'] == 'In Meeting' || json['status'] == 'On Meeting') ? Colors.orange : Colors.green,

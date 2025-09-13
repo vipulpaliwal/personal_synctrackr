@@ -85,62 +85,83 @@ class ReportsStaticsChart extends GetView<ReportsStaticsChartController> {
             Container(
               height: 220,
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: controller.isLoading.value
-                  ? const Center(child: CircularProgressIndicator())
-                  : controller.errorMessage.value != null
-                      ? Center(
-                          child: Text(controller.errorMessage.value!),
-                        )
-                      : Stack(
-                          children: [
-                            CustomPaint(
-                              painter: VisitorChartPainter(
-                                hoveredIndex: controller.hoveredIndex.value,
-                                values: controller.chartData[
-                                    controller.selectedFilter.value]!,
-                                labels: controller.chartLabels[
-                                    controller.selectedFilter.value]!,
-                                individualValues: controller
-                                    .chartIndividualCounts[
-                                        controller.selectedFilter.value]!
-                                    .toList(),
-                                isDarkMode: isDarkMode,
-                              ),
-                              size: Size.infinite,
+              child: Obx(() {
+                final isLoading = controller.isLoading.value;
+                final errorMessage = controller.errorMessage.value;
+                final hasData = controller
+                    .chartData[controller.selectedFilter.value]!.isNotEmpty;
+
+                if (isLoading && !hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (errorMessage != null && !hasData) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(errorMessage),
+                        const SizedBox(height: 8),
+                        // ElevatedButton(
+                        //   onPressed: () => controller.fetchChartData(),
+                        //   child: const Text('Retry'),
+                        // ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (!hasData) {
+                  return const Center(child: Text('No data available.'));
+                }
+
+                return Stack(
+                  children: [
+                    CustomPaint(
+                      painter: VisitorChartPainter(
+                        hoveredIndex: controller.hoveredIndex.value,
+                        values: controller
+                            .chartData[controller.selectedFilter.value]!,
+                        labels: controller
+                            .chartLabels[controller.selectedFilter.value]!,
+                        individualValues: controller.chartIndividualCounts[
+                                controller.selectedFilter.value]!
+                            .toList(),
+                        isDarkMode: isDarkMode,
+                      ),
+                      size: Size.infinite,
+                    ),
+                    Row(
+                      children: List.generate(
+                          controller
+                              .chartLabels[controller.selectedFilter.value]!
+                              .length, (index) {
+                        return Expanded(
+                          child: MouseRegion(
+                            onEnter: (_) =>
+                                controller.hoveredIndex.value = index,
+                            onExit: (_) =>
+                                controller.hoveredIndex.value = null,
+                            child: GestureDetector(
+                              onTap: () {
+                                if (controller.hoveredIndex.value == index) {
+                                  controller.navigateToReportsScreen(
+                                      controller.chartLabels[
+                                          controller.selectedFilter
+                                              .value]![index]);
+                                } else {
+                                  controller.hoveredIndex.value = index;
+                                }
+                              },
+                              child: Container(color: Colors.transparent),
                             ),
-                            Row(
-                              children: List.generate(
-                                  controller
-                                      .chartLabels[
-                                          controller.selectedFilter.value]!
-                                      .length, (index) {
-                                return Expanded(
-                                  child: MouseRegion(
-                                    onEnter: (_) =>
-                                        controller.hoveredIndex.value = index,
-                                    onExit: (_) =>
-                                        controller.hoveredIndex.value = null,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        if (controller.hoveredIndex.value ==
-                                            index) {
-                                          controller.navigateToReportsScreen(
-                                              controller.chartLabels[controller
-                                                  .selectedFilter
-                                                  .value]![index]);
-                                        } else {
-                                          controller.hoveredIndex.value = index;
-                                        }
-                                      },
-                                      child:
-                                          Container(color: Colors.transparent),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
-                        ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                );
+              }),
             ),
           ],
         ),

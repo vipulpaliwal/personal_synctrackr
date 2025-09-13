@@ -417,12 +417,34 @@ class VisitorsHeadsScreen extends StatelessWidget {
 
   Widget _buildEmployeeList(bool isTabletOrWeb, bool isDarkMode) {
     return Obx(() {
-      if (controller.isLoading.value) {
+      final isLoading = controller.isLoading.value;
+      final errorMessage = controller.errorMessage.value;
+      final hasData = controller.employees.isNotEmpty;
+
+      if (isLoading && !hasData) {
         return const Center(child: CircularProgressIndicator());
       }
+
+      if (errorMessage != null && !hasData) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(errorMessage),
+              const SizedBox(height: 8),
+              // ElevatedButton(
+              //   onPressed: () => controller.fetchHeads(),
+              //   child: const Text('Retry'),
+              // ),
+            ],
+          ),
+        );
+      }
+
       if (controller.filteredEmployees.isEmpty) {
         return const Center(child: Text('No employees found.'));
       }
+      
       final results = controller.getCurrentPageResults();
       return Column(
         children: results
@@ -550,13 +572,14 @@ class VisitorsHeadsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          employee.position,
+                          employee.department,
                           style: GoogleFonts.lexend(
                             color:  Colors.blue,
                             fontSize: 15,
                             fontWeight: FontWeight.w300
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
                           'Phone',
                           style: GoogleFonts.lexend(

@@ -929,6 +929,101 @@ class VisitorTypesChart extends StatelessWidget {
             ))
         .toList();
   }
+
+  Widget _buildLoadingState(bool isDarkMode) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isDarkMode
+                  ? adminAppColors.darkTextPrimary
+                  : adminAppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Loading chart data...',
+            style: GoogleFonts.lexend(
+              fontSize: 14,
+              color: isDarkMode
+                  ? adminAppColors.darkTextSecondary
+                  : const Color(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(
+      String error, bool isDarkMode, VoidCallback onRetry) {
+    return GestureDetector(
+      onTap: onRetry,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 32,
+              color: isDarkMode ? adminAppColors.darkWarning : Colors.red,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Failed to load chart data',
+              style: GoogleFonts.lexend(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isDarkMode
+                    ? adminAppColors.darkTextPrimary
+                    : adminAppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap to retry',
+              style: GoogleFonts.lexend(
+                fontSize: 12,
+                color: isDarkMode
+                    ? adminAppColors.darkTextSecondary
+                    : const Color(0xFF6B7280),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDarkMode) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.pie_chart_outline,
+            size: 32,
+            color: isDarkMode
+                ? adminAppColors.darkTextSecondary
+                : const Color(0xFF6B7280),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No visitor data available',
+            style: GoogleFonts.lexend(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: isDarkMode
+                  ? adminAppColors.darkTextPrimary
+                  : adminAppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _VisitorData {

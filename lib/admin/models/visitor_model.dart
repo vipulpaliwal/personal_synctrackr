@@ -64,6 +64,28 @@ class Visitor {
       host: json['host'] != null ? Host.fromJson(json['host']) : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'company': company,
+      'purpose': purpose,
+      'profession': profession,
+      'phone': phone,
+      'email': email,
+      'status': status,
+      'signedIn': signedIn?.toIso8601String(),
+      'signedOut': signedOut?.toIso8601String(),
+      'appointmentDate': appointmentDate.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'photo': photo,
+      'idProof': idProof?.toJson(),
+      'ePassQR': ePassQR,
+      'consent': consent?.toJson(),
+      'host': host?.toJson(),
+    };
+  }
 }
 
 class IdProof {
@@ -80,6 +102,14 @@ class IdProof {
       image: json['image'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'number': number,
+      'image': image,
+    };
+  }
 }
 
 class Consent {
@@ -91,6 +121,12 @@ class Consent {
     return Consent(
       signature: json['signature'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'signature': signature,
+    };
   }
 }
 
@@ -114,6 +150,15 @@ class Host {
       email: json['email'],
       dept: json['dept'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'dept': dept,
+    };
   }
 }
 
@@ -158,4 +203,18 @@ class PendingVisitor {
   String get meetingWith => host?.name ?? 'N/A';
   String get time => DateFormat.jm().format(meetingTime);
   bool get isApproved => status.toLowerCase() == 'approved';
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'company': company,
+      'purpose': purpose,
+      'createdAt': createdAt.toIso8601String(),
+      'status': status,
+      'meetingTime': meetingTime.toIso8601String(),
+      'photo': photo,
+      'host': host?.toJson(),
+    };
+  }
 }

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
+import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';
@@ -87,7 +88,7 @@ class LiveFeed extends StatelessWidget {
 
                   // Compute filtered list once
                   final filteredFeed = controller.liveFeedItems.where((item) {
-                    final status = item['status']?.toString().toLowerCase();
+                    final status = item.status.toLowerCase();
                     return status == 'checked-in' || status == 'checked-out';
                   }).toList();
 
@@ -109,46 +110,18 @@ class LiveFeed extends StatelessWidget {
                   }
 
                   // Show data; overlay subtle indicators for loading/error
-                  return Stack(
-                    children: [
-                      ListView(
-                        shrinkWrap: true,
-                        children: filteredFeed
-                            .asMap()
-                            .entries
-                            .map((entry) => _buildLiveFeedItem(
-                                  entry.value,
-                                  isDarkMode,
-                                  key: ValueKey(
-                                      'live_feed_${entry.key}_${entry.value['name']}_${entry.value['time']}'),
-                                ))
-                            .toList(),
-                      ),
-                      if (isLoading)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: LinearProgressIndicator(
-                            minHeight: 2,
-                            color: isDarkMode
-                                ? adminAppColors.darkTextPrimary
-                                : adminAppColors.textPrimary,
-                            backgroundColor: Colors.transparent,
-                          ),
-                        ),
-                      if (hasError)
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
-                          right: 8,
-                          child: _buildStaleBanner(
-                            isDarkMode,
-                            message: 'Showing last updated data. Tap to retry.',
-                            onRetry: () => controller.fetchLiveFeed(),
-                          ),
-                        ),
-                    ],
+                  return ListView(
+                    shrinkWrap: true,
+                    children: filteredFeed
+                        .asMap()
+                        .entries
+                        .map((entry) => _buildLiveFeedItem(
+                              entry.value,
+                              isDarkMode,
+                              key: ValueKey(
+                                  'live_feed_${entry.key}_${entry.value.name}_${entry.value.time}'),
+                            ))
+                        .toList(),
                   );
                 }),
               ),
@@ -170,8 +143,7 @@ class LiveFeed extends StatelessWidget {
     });
   }
 
-  Widget _buildLiveFeedItem(Map<String, String> item, bool isDarkMode,
-      {Key? key}) {
+  Widget _buildLiveFeedItem(LiveFeedItem item, bool isDarkMode, {Key? key}) {
     return Container(
       key: key,
       margin: const EdgeInsets.only(bottom: 12),
@@ -180,15 +152,15 @@ class LiveFeed extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: _getStatusColor(item['status']!, isDarkMode, true),
+              color: _getStatusColor(item.status, isDarkMode, true),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              _getStatusDisplayText(item['status']!),
+              _getStatusDisplayText(item.status),
               style: GoogleFonts.lexend(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: _getStatusColor(item['status']!, isDarkMode, false),
+                color: _getStatusColor(item.status, isDarkMode, false),
               ),
             ),
           ),
@@ -198,7 +170,7 @@ class LiveFeed extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  capitalizeWords(item['name']!),
+                  capitalizeWords(item.name),
                   style: GoogleFonts.lexend(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -207,10 +179,10 @@ class LiveFeed extends StatelessWidget {
                         : adminAppColors.textPrimary,
                   ),
                 ),
-                if (item['company'] != null && item['company']!.isNotEmpty) ...[
+                if (item.company != null && item.company!.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
-                    item['company']!,
+                    item.company!,
                     style: GoogleFonts.lexend(
                       fontSize: 12,
                       color: isDarkMode
@@ -224,7 +196,7 @@ class LiveFeed extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            item['time']!,
+            item.time,
             style: GoogleFonts.lexend(
               fontSize: 12,
               color: isDarkMode
@@ -405,63 +377,4 @@ class LiveFeed extends StatelessWidget {
     );
   }
 
-  Widget _buildStaleBanner(bool isDarkMode,
-      {required String message, required VoidCallback onRetry}) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onRetry,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isDarkMode
-                ? adminAppColors.darkTextSecondary.withOpacity(0.15)
-                : Colors.black.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDarkMode ? adminAppColors.darkBorder : Colors.black12,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.wifi_off_rounded,
-                size: 16,
-                color: isDarkMode
-                    ? adminAppColors.darkTextSecondary
-                    : const Color(0xFF6B7280),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  message,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lexend(
-                    fontSize: 12,
-                    color: isDarkMode
-                        ? adminAppColors.darkTextPrimary
-                        : adminAppColors.textPrimary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Retry',
-                style: GoogleFonts.lexend(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDarkMode
-                      ? adminAppColors.darkTextPrimary
-                      : adminAppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
