@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:synctrackr/admin/config/api_config.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:synctrackr/admin/config/session_manager.dart';
+
+
 
 // ==================== DATA MODELS ====================
 
@@ -136,6 +141,8 @@ class VisitorStatistic {
 // ==================== API SERVICES ====================
 
 class ApiService {
+  static const _secureStorage = FlutterSecureStorage();
+
   // Headers for API requests
   static Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -272,6 +279,7 @@ class ApiService {
       throw Exception('Network error: Unable to connect to server');
     }
   }
+
 
   // ==================== OTP (MOBILE VERIFICATION) ====================
 
@@ -435,6 +443,178 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error fetching today\'s check-outs count: $e');
+    }
+  }
+
+
+  // ==================== E-PASS API FUNCTIONS ====================
+
+  /// Create single e-pass
+  /// POST /api/companies/:companyId/epasses
+  Future<Map<String, dynamic>> createPass({
+    required String fullName,
+    required String email,
+    String? department,
+    String? designation,
+    required String passType,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+      final String? companyId = await SessionManager.getCompanyId();
+      final String? userId = await SessionManager.getUserId();
+
+      if (token == null || companyId == null || userId == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/epasses'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'fullName': fullName,
+          'email': email,
+          'department': department,
+          'designation': designation,
+          'passtype': passType,
+          'generatedBy': userId,
+        }),
+      );
+
+      final responseBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': responseBody['message'] ?? 'Pass generated successfully',
+          'data': responseBody
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseBody['message'] ?? 'Failed to generate pass'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  /// Bulk upload e-passes
+  /// POST /api/companies/:companyId/epasses/bulk
+  Future<Map<String, dynamic>> bulkUploadPasses(
+      File file, String passType) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+      final String? companyId = await SessionManager.getCompanyId();
+      final String? userId = await SessionManager.getUserId();
+
+      if (token == null || companyId == null || userId == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      final url = Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk');
+
+      var request = http.MultipartRequest('POST', url);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['passtype'] = passType;
+      request.fields['generatedBy'] = userId;
+      request.files.add(await http.MultipartFile.fromPath('upload', file.path));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final responseBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': responseBody['message'] ?? 'Bulk upload successful',
+          'data': responseBody,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseBody['message'] ?? 'Failed to upload file'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  /// List e-passes with pagination and search
+  /// GET /api/companies/:companyId/epasses?search=&passtype=&page=&pageSize=
+  Future<Map<String, dynamic>> listEpasses({
+    required String companyId,
+    String? search,
+    String? passType,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    try {
+      final params = <String, String>{
+        'page': page.toString(),
+        'pageSize': pageSize.toString(),
+      };
+      if (search != null && search.isNotEmpty) params['search'] = search;
+      if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
+
+      final query = params.entries
+          .map((e) =>
+              '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+          .join('&');
+
+      return await _get('/companies/$companyId/epasses?$query');
+    } catch (e) {
+      throw Exception('Error fetching e-passes: $e');
+    }
+  }
+
+  /// Export e-passes as CSV
+  /// GET /api/companies/:companyId/epasses/export.csv?search=&passtype=
+  Future<http.Response> exportEpassesCsv({
+    required String companyId,
+    String? search,
+    String? passType,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (search != null && search.isNotEmpty) params['search'] = search;
+      if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
+
+      final query = params.isEmpty
+          ? ''
+          : '?' +
+              params.entries
+                  .map((e) =>
+                      '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+                  .join('&');
+
+      final url = Uri.parse(
+          '${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/export.csv$query');
+
+      return await http.get(url,
+          headers: {'Accept': 'text/csv'}).timeout(ApiConfig.requestTimeout);
+    } catch (e) {
+      throw Exception('Error exporting e-passes: $e');
+    }
+  }
+
+  /// Verify e-pass by QR token
+  /// GET /api/companies/:companyId/epasses/verify/:token
+  Future<Map<String, dynamic>> verifyPass(String companyId, String token) async {
+    try {
+      return await _get('/companies/$companyId/epasses/verify/$token');
+    } catch (e) {
+      throw Exception('Error verifying pass: $e');
     }
   }
 
@@ -782,56 +962,6 @@ class ApiService {
     } catch (e) {
       throw Exception('Error uploading bulk e-passes: $e');
     }
-  }
-
-  // ==================== E-PASS LIST + EXPORT ====================
-
-  /// List e-passes
-  /// GET /api/companies/:companyId/epasses?search=&passtype=&page=&pageSize=
-  Future<Map<String, dynamic>> listEpasses({
-    required String companyId,
-    String? search,
-    String? passType,
-    int page = 1,
-    int pageSize = 10,
-  }) async {
-    final params = <String, String>{
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    };
-    if (search != null && search.isNotEmpty) params['search'] = search;
-    if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
-
-    final query = params.entries
-        .map((e) =>
-            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
-        .join('&');
-
-    return await _get('/companies/$companyId/epasses?$query');
-  }
-
-  /// Export e-passes CSV and return bytes
-  /// GET /api/companies/:companyId/epasses/export.csv?search=&passtype=
-  Future<http.Response> exportEpassesCsv({
-    required String companyId,
-    String? search,
-    String? passType,
-  }) async {
-    final params = <String, String>{};
-    if (search != null && search.isNotEmpty) params['search'] = search;
-    if (passType != null && passType.isNotEmpty) params['passtype'] = passType;
-    final query = params.isEmpty
-        ? ''
-        : '?' +
-            params.entries
-                .map((e) =>
-                    '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
-                .join('&');
-    final url = Uri.parse(
-        '${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/export.csv$query');
-    final response = await http.get(url,
-        headers: {'Accept': 'text/csv'}).timeout(ApiConfig.requestTimeout);
-    return response;
   }
 
   // ==================== COMPLIANCES ====================

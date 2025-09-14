@@ -7,7 +7,7 @@ import 'package:synctrackr/core/widgets/custom_btn.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 
 class AdminLoginScreen extends StatelessWidget {
-  const AdminLoginScreen({super.key});
+  AdminLoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

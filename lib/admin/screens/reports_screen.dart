@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'package:synctrackr/admin/controllers/reports_controller.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
 import 'package:synctrackr/admin/widgets/employee_list.dart';
@@ -24,6 +25,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(DashboardController());
     final screenWidth = MediaQuery.of(context).size.width;
 
     return CustomScrollView(
@@ -38,11 +40,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical:20),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                
                 const StatsCards(
                     cardNames: ['visitors', 'checkin', 'checkout', 'monthly']),
                 const SizedBox(

@@ -7,6 +7,7 @@ import 'package:synctrackr/admin/screens/main_screen.dart';
 import 'package:synctrackr/core/constants/app_themes.dart';
 import 'package:synctrackr/core/routes/route_generator.dart';
 import 'package:synctrackr/admin/routes/app_routes.dart' as adminRoutes;
+import 'package:synctrackr/admin/screens/admin_login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialRoute:  adminRoutes.adminAppRoutes.adminLoginScreen,
+      home: const _SessionGate(),
       getPages: [
         ...RouteGenerator.getRoutes(),
         ...adminRoutes.adminAppRoutes.routes,
@@ -34,44 +35,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// class _SessionGate extends StatefulWidget {
-//   const _SessionGate({Key? key}) : super(key: key);
+class _SessionGate extends StatefulWidget {
+  const _SessionGate({Key? key}) : super(key: key);
 
-//   @override
-//   State<_SessionGate> createState() => _SessionGateState();
-// }
+  @override
+  State<_SessionGate> createState() => _SessionGateState();
+}
 
-// class _SessionGateState extends State<_SessionGate> {
-//   final _secureStorage = const FlutterSecureStorage();
+class _SessionGateState extends State<_SessionGate> {
+  @override
+  void initState() {
+    super.initState();
+    _decideStartDestination();
+  }
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _decideStartDestination();
-//   }
+  Future<void> _decideStartDestination() async {
+    try {
+      final isLoggedIn = await SessionManager.isLoggedIn();
 
-//   Future<void> _decideStartDestination() async {
-//     try {
-//       final companyId = await SessionManager.getCompanyId();
-//       final token = await _secureStorage.read(key: 'authToken');
+      if (isLoggedIn) {
+        Get.offAll(() => const MainScreen());
+      } else {
+        Get.offAll(() => AdminLoginScreen());
+      }
+    } catch (_) {
+      Get.offAll(() => AdminLoginScreen());
+    }
+  }
 
-//       if (companyId != null &&
-//           companyId.isNotEmpty &&
-//           token != null &&
-//           token.isNotEmpty) {
-//         Get.offAll(() => const MainScreen());
-//       } else {
-//         Get.offAllNamed(adminRoutes.adminAppRoutes.adminLoginScreen);
-//       }
-//     } catch (_) {
-//       Get.offAllNamed(adminRoutes.adminAppRoutes.adminLoginScreen);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Scaffold(
-//       body: Center(child: CircularProgressIndicator()),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}

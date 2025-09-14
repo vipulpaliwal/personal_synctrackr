@@ -3,7 +3,7 @@ import 'package:synctrackr/admin/config/session_manager.dart';
 class ApiConfig {
   // API Configuration
   static const String baseUrl =
-      'http://15.206.72.253:5000'; // Updated to your actual backend URL
+      'http://15.206.72.253:5000/api'; // Updated to your actual backend URL with /api prefix
 
   // You can also use different URLs for different environments
   static const String devBaseUrl = 'http://15.206.72.253:5000/api';

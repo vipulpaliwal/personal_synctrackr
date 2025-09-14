@@ -346,23 +346,27 @@ class OthersEpassGenerator extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          onPressed: controller.generatePass,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Generate Pass',
-                style: GoogleFonts.lexend(
-                  color: isDarkMode ? Colors.black : Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          onPressed: controller.isLoading.value ? null : controller.generatePass,
+          child: controller.isLoading.value
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Generate Pass',
+                      style: GoogleFonts.lexend(
+                        color: isDarkMode ? Colors.black : Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(Icons.arrow_forward,
+                        color: isDarkMode ? Colors.black : Colors.white),
+                  ],
                 ),
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.arrow_forward,
-                  color: isDarkMode ? Colors.black : Colors.white),
-            ],
-          ),
         ),
       );
     });
