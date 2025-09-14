@@ -343,7 +343,7 @@ class SettingsAccountView extends StatelessWidget {
             ),
             filled: true,
             fillColor: isDarkMode
-                ? adminAppColors.darkSecondaryBackground
+                ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                 : Colors.white,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -373,22 +373,22 @@ class SettingsAccountView extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? adminAppColors.darkSecondaryBackground
+                      ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                       : Colors.white,
                   borderRadius:
                       BorderRadius.horizontal(left: Radius.circular(8)),
                   border: Border(
                     top: BorderSide(
                         color: isDarkMode
-                            ? adminAppColors.primary
+                            ? adminAppColors.secondary
                             : Color(0xFFDEE2E6)),
                     bottom: BorderSide(
                         color: isDarkMode
-                            ? adminAppColors.primary
+                            ? adminAppColors.secondary
                             : Color(0xFFDEE2E6)),
                     left: BorderSide(
                         color: isDarkMode
-                            ? adminAppColors.primary
+                            ? adminAppColors.secondary
                             : Color(0xFFDEE2E6)),
                   ),
                 ),
@@ -429,17 +429,17 @@ class SettingsAccountView extends StatelessWidget {
                           right: Radius.circular(8)),
                       borderSide: BorderSide(
                           color: isDarkMode
-                              ? adminAppColors.primary
+                              ? adminAppColors.secondary
                               : Color(0xFFDEE2E6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: const BorderRadius.horizontal(
                           right: Radius.circular(8)),
-                      borderSide: const BorderSide(color: Color(0xFF4C6FFF)),
+                      borderSide: const BorderSide(color: adminAppColors.secondary),
                     ),
                     filled: true,
                     fillColor: isDarkMode
-                        ? adminAppColors.darkSecondaryBackground
+                        ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                         : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -474,7 +474,7 @@ class DottedBorderBox extends StatelessWidget {
           options: RoundedRectDottedBorderOptions(
             radius: Radius.circular(12),
             color: isDarkMode
-                ? adminAppColors.darkSecondaryBackground
+                ? adminAppColors.secondary
                 : adminAppColors.primary,
             strokeWidth: 1,
             dashPattern: const [6, 6],
@@ -486,7 +486,7 @@ class DottedBorderBox extends StatelessWidget {
                 height: 140,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? adminAppColors.darkSecondaryBackground
+                      ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                       : adminAppColors.secondary.withBlue(30),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -539,7 +539,7 @@ class DottedBorderBox extends StatelessWidget {
                 height: 140,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? adminAppColors.darkSecondaryBackground
+                      ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                       : adminAppColors.mainBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),

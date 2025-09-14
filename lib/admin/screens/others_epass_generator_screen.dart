@@ -6,8 +6,10 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/others_epass_controller.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
+import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/widgets/bulk_pass_section.dart';
 import 'package:synctrackr/admin/widgets/common_header.dart';
+import 'package:synctrackr/admin/widgets/others%20_event%20_e%20_pass_generated_section.dart';
 
 class OthersEpassGenerator extends StatelessWidget {
   final EPassController controller = Get.put(EPassController());
@@ -113,8 +115,8 @@ class OthersEpassGenerator extends StatelessWidget {
                   const SizedBox(
                     height: 20,
                   ),
-                  BulkPassSection(),
-                ],
+                  OthersEventEPassGeneratedSection()
+                                  ],
               ),
             ),
           ]),
@@ -197,14 +199,15 @@ class OthersEpassGenerator extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? adminAppColors.darkSecondaryBackground
+                      ? adminAppColors.darkSecondaryBackground.withOpacity(0.5)
                       : adminAppColors.mainBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.upload_file,
+                    ImageIcon(
+                      AssetImage(AllImages.bulkUploadIcon),
                         size: 40,
                         color:
                             isDarkMode ? Colors.white70 : Colors.grey.shade600),

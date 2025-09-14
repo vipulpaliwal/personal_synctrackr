@@ -186,121 +186,357 @@ class VisitorChartPainter extends CustomPainter {
     required this.isDarkMode,
   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = isDarkMode ? Color(0xffbbd2ff) : Colors.blue.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
+  // @override
+  // void paint(Canvas canvas, Size size) {
+  //   final Paint paint = Paint()
+  //     ..color = isDarkMode ? Color(0xffbbd2ff) : Colors.blue.withOpacity(0.3)
+  //     ..style = PaintingStyle.fill;
 
-    final Path path = Path();
-    path.moveTo(0, size.height);
+  //   final Path path = Path();
+  //   path.moveTo(0, size.height);
 
-    if (values.length == 1) {
-      double dy = size.height * (1 - values[0]);
-      path.lineTo(size.width, dy);
-      path.lineTo(size.width, size.height);
-    } else {
-      double columnWidth = size.width / (values.length - 1);
+  //   if (values.length == 1) {
+  //     double dy = size.height * (1 - values[0]);
+  //     path.lineTo(size.width, dy);
+  //     path.lineTo(size.width, size.height);
+  //   } else {
+  //     double columnWidth = size.width / (values.length - 1);
 
-      for (int i = 0; i < values.length; i++) {
-        double dx = columnWidth * i;
-        double dy = size.height * (1 - values[i]);
+  //     for (int i = 0; i < values.length; i++) {
+  //       double dx = columnWidth * i;
+  //       double dy = size.height * (1 - values[i]);
 
-        if (i == 0) {
-          path.lineTo(dx, dy);
-        } else {
-          double prevDx = columnWidth * (i - 1);
-          double prevDy = size.height * (1 - values[i - 1]);
+  //       if (i == 0) {
+  //         path.lineTo(dx, dy);
+  //       } else {
+  //         double prevDx = columnWidth * (i - 1);
+  //         double prevDy = size.height * (1 - values[i - 1]);
 
-          path.quadraticBezierTo(
-            (prevDx + dx) / 2,
-            (prevDy + dy) / 2,
-            dx,
-            dy,
-          );
-        }
+  //         path.quadraticBezierTo(
+  //           (prevDx + dx) / 2,
+  //           (prevDy + dy) / 2,
+  //           dx,
+  //           dy,
+  //         );
+  //       }
+  //     }
+  //     path.lineTo(size.width, size.height);
+  //   }
+  //   path.close();
+  //   canvas.drawPath(path, paint);
+
+  //   // Divider lines
+  //   final dividerPaint = Paint()
+  //     ..color = isDarkMode ? Colors.black : Colors.white
+  //     ..strokeWidth = 2.5;
+  //   double columnWidth2 = size.width / labels.length;
+  //   for (int i = 1; i < labels.length; i++) {
+  //     double dx = columnWidth2 * i;
+  //     canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), dividerPaint);
+  //   }
+
+  //   // Labels
+  //   final textPainter = TextPainter(
+  //     textAlign: TextAlign.center,
+  //     textDirection: TextDirection.ltr,
+  //   );
+
+  //   for (int i = 0; i < labels.length; i++) {
+  //     double xCenter = columnWidth2 * i + columnWidth2 / 2;
+
+  //     if (i == hoveredIndex) {
+  //       Rect highlightRect = Rect.fromLTWH(
+  //         columnWidth2 * i,
+  //         0,
+  //         columnWidth2,
+  //         size.height,
+  //       );
+  //       Paint highlightPaint = Paint()
+  //         ..color = isDarkMode
+  //             ? adminAppColors.darkMainButton.withOpacity(0.08)
+  //             : Colors.blue.withOpacity(0.08)
+  //         ..style = PaintingStyle.fill;
+  //       canvas.drawRect(highlightRect, highlightPaint);
+  //     }
+
+  //     textPainter.text = TextSpan(
+  //       text: labels[i],
+  //       style: TextStyle(
+  //         color: i == hoveredIndex
+  //             ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+  //             : isDarkMode
+  //                 ? Colors.white
+  //                 : Colors.black,
+  //         fontSize: 12,
+  //         fontWeight: FontWeight.w500,
+  //       ),
+  //     );
+  //     textPainter.layout(maxWidth: columnWidth2);
+  //     textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 10));
+
+  //     textPainter.text = TextSpan(
+  //       text: individualValues[i],
+  //       style: GoogleFonts.lexend(
+  //         color: i == hoveredIndex
+  //             ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+  //             : isDarkMode
+  //                 ? Colors.white
+  //                 : Colors.black,
+  //         fontSize: 13,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //     );
+  //     textPainter.layout(maxWidth: columnWidth2);
+  //     textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 30));
+
+  //     if (i == hoveredIndex) {
+  //       textPainter.text = TextSpan(
+  //         text: "Details →",
+  //         style: GoogleFonts.lexend(
+  //             color: isDarkMode ? adminAppColors.darkMainButton : Colors.blue,
+  //             fontSize: 11),
+  //       );
+  //       textPainter.layout();
+  //       textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 50));
+  //     }
+  //   }
+  // }
+// version 2
+//  @override
+// void paint(Canvas canvas, Size size) {
+//   final double topReservedHeight = 60; // labels + counts ke liye upar jagah
+//   final double chartHeight = size.height - topReservedHeight;
+
+//   final Paint paint = Paint()
+//     ..color = isDarkMode ? const Color(0xffbbd2ff) : Colors.blue.withOpacity(0.3)
+//     ..style = PaintingStyle.fill;
+
+//   final Path path = Path();
+//   path.moveTo(0, size.height);
+
+//   if (values.length == 1) {
+//     double dy = (chartHeight * (1 - values[0])) + topReservedHeight;
+//     path.lineTo(size.width, dy);
+//     path.lineTo(size.width, size.height);
+//   } else {
+//     double columnWidth = size.width / (values.length - 1);
+
+//     for (int i = 0; i < values.length; i++) {
+//       double dx = columnWidth * i;
+//       double dy = (chartHeight * (1 - values[i])) + topReservedHeight;
+
+//       if (i == 0) {
+//         path.lineTo(dx, dy);
+//       } else {
+//         double prevDx = columnWidth * (i - 1);
+//         double prevDy = (chartHeight * (1 - values[i - 1])) + topReservedHeight;
+
+//         path.quadraticBezierTo(
+//           (prevDx + dx) / 2,
+//           (prevDy + dy) / 2,
+//           dx,
+//           dy,
+//         );
+//       }
+//     }
+//     path.lineTo(size.width, size.height);
+//   }
+//   path.close();
+//   canvas.drawPath(path, paint);
+
+//   // Divider lines (poore chart tak hi)
+//   final dividerPaint = Paint()
+//     ..color = isDarkMode ? Colors.black : Colors.white
+//     ..strokeWidth = 2.5;
+
+//   double columnWidth2 = size.width / labels.length;
+//   for (int i = 1; i < labels.length; i++) {
+//     double dx = columnWidth2 * i;
+//     canvas.drawLine(Offset(dx, topReservedHeight), Offset(dx, size.height), dividerPaint);
+//   }
+
+//   // Labels aur counts ko bilkul upar hi draw karo (pehle ki tarah)
+//   final textPainter = TextPainter(
+//     textAlign: TextAlign.center,
+//     textDirection: TextDirection.ltr,
+//   );
+
+//   for (int i = 0; i < labels.length; i++) {
+//     double xCenter = columnWidth2 * i + columnWidth2 / 2;
+
+//     // Label (upar me hi)
+//     textPainter.text = TextSpan(
+//       text: labels[i],
+//       style: TextStyle(
+//         color: i == hoveredIndex
+//             ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+//             : isDarkMode
+//                 ? Colors.white
+//                 : Colors.black,
+//         fontSize: 12,
+//         fontWeight: FontWeight.w500,
+//       ),
+//     );
+//     textPainter.layout(maxWidth: columnWidth2);
+//     textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 10));
+
+//     // Count
+//     textPainter.text = TextSpan(
+//       text: individualValues[i],
+//       style: GoogleFonts.lexend(
+//         color: i == hoveredIndex
+//             ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+//             : isDarkMode
+//                 ? Colors.white
+//                 : Colors.black,
+//         fontSize: 13,
+//         fontWeight: FontWeight.bold,
+//       ),
+//     );
+//     textPainter.layout(maxWidth: columnWidth2);
+//     textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 28));
+
+//     // Details → (hover hone par)
+//     if (i == hoveredIndex) {
+//       textPainter.text = TextSpan(
+//         text: "Details →",
+//         style: GoogleFonts.lexend(
+//             color: isDarkMode ? adminAppColors.darkMainButton : Colors.blue,
+//             fontSize: 11),
+//       );
+//       textPainter.layout();
+//       textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 46));
+//     }
+//   }
+// }
+//version 3
+
+@override
+void paint(Canvas canvas, Size size) {
+  final double topReservedHeight = 75; // upar labels ke liye space
+  final double chartHeight = size.height - topReservedHeight;
+
+  final Paint paint = Paint()
+    ..color = isDarkMode ? const Color(0xffbbd2ff) : Colors.blue.withOpacity(0.3)
+    ..style = PaintingStyle.fill;
+
+  final Path path = Path();
+  path.moveTo(0, size.height);
+
+  if (values.length == 1) {
+    double dy = (chartHeight * (1 - values[0])) + topReservedHeight;
+    path.lineTo(size.width, dy);
+    path.lineTo(size.width, size.height);
+  } else {
+    double columnWidth = size.width / (values.length - 1);
+
+    for (int i = 0; i < values.length; i++) {
+      double dx = columnWidth * i;
+      double dy = (chartHeight * (1 - values[i])) + topReservedHeight;
+
+      if (i == 0) {
+        path.lineTo(dx, dy);
+      } else {
+        double prevDx = columnWidth * (i - 1);
+        double prevDy =
+            (chartHeight * (1 - values[i - 1])) + topReservedHeight;
+
+        path.quadraticBezierTo(
+          (prevDx + dx) / 2,
+          (prevDy + dy) / 2,
+          dx,
+          dy,
+        );
       }
-      path.lineTo(size.width, size.height);
     }
-    path.close();
-    canvas.drawPath(path, paint);
+    path.lineTo(size.width, size.height);
+  }
+  path.close();
+  canvas.drawPath(path, paint);
 
-    // Divider lines
-    final dividerPaint = Paint()
-      ..color = isDarkMode ? Colors.black : Colors.white
-      ..strokeWidth = 2.5;
-    double columnWidth2 = size.width / labels.length;
-    for (int i = 1; i < labels.length; i++) {
-      double dx = columnWidth2 * i;
-      canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), dividerPaint);
+  // Divider lines
+  final dividerPaint = Paint()
+    ..color = isDarkMode ? Colors.black : Colors.white
+    ..strokeWidth = 2.5;
+  double columnWidth2 = size.width / labels.length;
+  for (int i = 1; i < labels.length; i++) {
+    double dx = columnWidth2 * i;
+    canvas.drawLine(
+        Offset(dx, topReservedHeight), Offset(dx, size.height), dividerPaint);
+  }
+
+  // Labels + Hover Highlight
+  final textPainter = TextPainter(
+    textAlign: TextAlign.center,
+    textDirection: TextDirection.ltr,
+  );
+
+  for (int i = 0; i < labels.length; i++) {
+    double xCenter = columnWidth2 * i + columnWidth2 / 2;
+
+    // Hover background rectangle
+    if (i == hoveredIndex) {
+      Rect highlightRect = Rect.fromLTWH(
+        columnWidth2 * i,
+        0,
+        columnWidth2,
+        size.height,
+      );
+      Paint highlightPaint = Paint()
+        ..color = isDarkMode
+            ? adminAppColors.darkMainButton.withOpacity(0.08)
+            : Colors.blue.withOpacity(0.08)
+        ..style = PaintingStyle.fill;
+      canvas.drawRect(highlightRect, highlightPaint);
     }
 
-    // Labels
-    final textPainter = TextPainter(
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
+    // Label (date)
+    textPainter.text = TextSpan(
+      text: labels[i],
+      style: TextStyle(
+        color: i == hoveredIndex
+            ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+            : isDarkMode
+                ? Colors.white
+                : Colors.black,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
     );
+    textPainter.layout(maxWidth: columnWidth2);
+    textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 10));
 
-    for (int i = 0; i < labels.length; i++) {
-      double xCenter = columnWidth2 * i + columnWidth2 / 2;
+    // Count
+    textPainter.text = TextSpan(
+      text: individualValues[i],
+      style: GoogleFonts.lexend(
+        color: i == hoveredIndex
+            ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
+            : isDarkMode
+                ? Colors.white
+                : Colors.black,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    textPainter.layout(maxWidth: columnWidth2);
+    textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 28));
 
-      if (i == hoveredIndex) {
-        Rect highlightRect = Rect.fromLTWH(
-          columnWidth2 * i,
-          0,
-          columnWidth2,
-          size.height,
-        );
-        Paint highlightPaint = Paint()
-          ..color = isDarkMode
-              ? adminAppColors.darkMainButton.withOpacity(0.08)
-              : Colors.blue.withOpacity(0.08)
-          ..style = PaintingStyle.fill;
-        canvas.drawRect(highlightRect, highlightPaint);
-      }
-
+    // Details → (only on hover)
+    if (i == hoveredIndex) {
       textPainter.text = TextSpan(
-        text: labels[i],
-        style: TextStyle(
-          color: i == hoveredIndex
-              ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
-              : isDarkMode
-                  ? Colors.white
-                  : Colors.black,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      );
-      textPainter.layout(maxWidth: columnWidth2);
-      textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 10));
-
-      textPainter.text = TextSpan(
-        text: individualValues[i],
+        text: "Details →",
         style: GoogleFonts.lexend(
-          color: i == hoveredIndex
-              ? (isDarkMode ? adminAppColors.darkMainButton : Colors.blue)
-              : isDarkMode
-                  ? Colors.white
-                  : Colors.black,
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
+          color: isDarkMode ? adminAppColors.darkMainButton : Colors.blue,
+          fontSize: 11,
         ),
       );
-      textPainter.layout(maxWidth: columnWidth2);
-      textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 30));
-
-      if (i == hoveredIndex) {
-        textPainter.text = TextSpan(
-          text: "Details →",
-          style: GoogleFonts.lexend(
-              color: isDarkMode ? adminAppColors.darkMainButton : Colors.blue,
-              fontSize: 11),
-        );
-        textPainter.layout();
-        textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 50));
-      }
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(xCenter - textPainter.width / 2, 46));
     }
   }
+}
+
 
   @override
   bool shouldRepaint(covariant VisitorChartPainter oldDelegate) {

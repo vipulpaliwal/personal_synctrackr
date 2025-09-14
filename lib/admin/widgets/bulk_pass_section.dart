@@ -5,6 +5,7 @@ import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/admin/config/api_config.dart';
+import 'package:synctrackr/admin/utils/images.dart';
 
 class BulkPassSection extends StatefulWidget {
   const BulkPassSection({super.key});
@@ -84,39 +85,43 @@ class _BulkPassSectionState extends State<BulkPassSection> {
                     color: isDarkMode ? Colors.white : Color(0xFF1A1D29),
                   ),
                 ),
-                Row(children: [
-                  SizedBox(
-                    width: 220,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search passes...',
-                        isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(6)),
-                      ),
-                      onSubmitted: (v) {
-                        _search = v.trim();
-                        _page = 1;
-                        _loadData();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Refresh',
-                    onPressed: _loading ? null : _loadData,
-                    icon: Icon(Icons.refresh,
-                        color: isDarkMode ? Colors.white : Colors.black),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    tooltip: 'Export CSV',
-                    onPressed: _loading ? null : _exportCsv,
-                    icon: Icon(Icons.download,
-                        color: isDarkMode ? Colors.white : Colors.black),
-                  ),
+                Row(
+                  children: [
+                    ImageIcon(
+                      AssetImage(AllImages.arrowRight)
+                    )
+                  // SizedBox(
+                  //   width: 220,
+                  //   child: TextField(
+                  //     decoration: InputDecoration(
+                  //       hintText: 'Search passes...',
+                  //       isDense: true,
+                  //       contentPadding:
+                  //           EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  //       border: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(6)),
+                  //     ),
+                  //     onSubmitted: (v) {
+                  //       _search = v.trim();
+                  //       _page = 1;
+                  //       _loadData();
+                  //     },
+                  //   ),
+                  // ),
+                  // const SizedBox(width: 8),
+                  // IconButton(
+                  //   tooltip: 'Refresh',
+                  //   onPressed: _loading ? null : _loadData,
+                  //   icon: Icon(Icons.refresh,
+                  //       color: isDarkMode ? Colors.white : Colors.black),
+                  // ),
+                  // const SizedBox(width: 4),
+                  // IconButton(
+                  //   tooltip: 'Export CSV',
+                  //   onPressed: _loading ? null : _exportCsv,
+                  //   icon: Icon(Icons.download,
+                  //       color: isDarkMode ? Colors.white : Colors.black),
+                  // ),
                 ]),
               ],
             ),
