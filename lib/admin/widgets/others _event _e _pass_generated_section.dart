@@ -467,24 +467,92 @@ class _OthersEventEPassGeneratedSectionState
 
   // Generate sample PDF content (fallback for demo/testing)
   Uint8List _generateSamplePDF(String name, String email) {
-    // Create a simple text file for demonstration
-    final content = '''
-E-PASS DOCUMENT
-Name: $name
-Email: $email
-Generated: ${DateTime.now().toString()}
-Status: Active
-Pass Type: Guest
+    // Create a minimal PDF structure for web compatibility
+    final pdfHeader = '%PDF-1.4\n';
+    final pdfContent = '''
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
 
-This is a sample E-Pass document.
-In production, this would be replaced with actual PDF data from the server.
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
 
-Note: This is currently a text file for demonstration purposes.
-The actual implementation should download real PDF data from the server API.
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 200
+>>
+stream
+BT
+/F1 12 Tf
+50 750 Td
+(E-PASS DOCUMENT) Tj
+0 -20 Td
+(Name: $name) Tj
+0 -20 Td
+(Email: $email) Tj
+0 -20 Td
+(Generated: ${DateTime.now().toString()}) Tj
+0 -20 Td
+(Status: Active) Tj
+0 -20 Td
+(Pass Type: Guest) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000274 00000 n
+0000000700 00000 n
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+800
+%%EOF
 ''';
 
-    // Convert to bytes - this creates a text file, not a PDF
-    return Uint8List.fromList(content.codeUnits);
+    // Combine header and content
+    final fullContent = pdfHeader + pdfContent;
+
+    // Convert to bytes - this creates a proper PDF structure
+    return Uint8List.fromList(fullContent.codeUnits);
   }
 
   // Web-specific download with folder selection
