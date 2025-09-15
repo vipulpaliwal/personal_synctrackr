@@ -32,6 +32,7 @@ class _OthersEventEPassGeneratedSectionState
   late EPassController _ePassController;
 
   bool _loading = false;
+  bool _hasError = false;
   List<Map<String, dynamic>> _rows = [];
   int _page = 1;
   final int _pageSize = 10;
@@ -327,6 +328,7 @@ class _OthersEventEPassGeneratedSectionState
       if (response.containsKey('items')) {
         final items = response['items'] as List<dynamic>;
         setState(() {
+          _hasError = false;
           _rows = items.map((item) {
             // Transform API response to match table structure
             return {
@@ -341,12 +343,12 @@ class _OthersEventEPassGeneratedSectionState
           }).toList();
         });
       } else {
-        setState(() => _rows = []);
+        setState(() => _hasError = true);
         Get.snackbar('Error', 'Failed to load passes',
             snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
-      setState(() => _rows = []);
+      setState(() => _hasError = true);
       Get.snackbar('Error', 'Failed to load passes: $e',
           snackPosition: SnackPosition.BOTTOM);
     } finally {

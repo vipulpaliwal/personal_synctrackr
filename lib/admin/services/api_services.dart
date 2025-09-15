@@ -5,7 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:synctrackr/admin/config/api_config.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:synctrackr/admin/config/session_manager.dart';
 
 
@@ -144,10 +143,20 @@ class ApiService {
   static const _secureStorage = FlutterSecureStorage();
 
   // Headers for API requests
-  static Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+  static Future<Map<String, String>> get _headers async {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    // Add authentication token if available
+    final token = await _secureStorage.read(key: 'authToken');
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+
+    return headers;
+  }
 
   // Generic GET request method with timeout and retry
   Future<Map<String, dynamic>> _get(String endpoint) async {
@@ -155,10 +164,11 @@ class ApiService {
 
     while (retryCount < ApiConfig.maxRetries) {
       try {
+        final headers = await _headers;
         final response = await http
             .get(
               Uri.parse('${ApiConfig.apiBaseUrl}$endpoint'),
-              headers: _headers,
+              headers: headers,
             )
             .timeout(ApiConfig.requestTimeout);
 
@@ -193,10 +203,11 @@ class ApiService {
 
     while (retryCount < ApiConfig.maxRetries) {
       try {
+        final headers = await _headers;
         final response = await http
             .post(
               Uri.parse('${ApiConfig.apiBaseUrl}$endpoint'),
-              headers: _headers,
+              headers: headers,
               body: json.encode(data),
             )
             .timeout(ApiConfig.requestTimeout);
@@ -244,6 +255,31 @@ class ApiService {
     throw Exception('Max retries exceeded');
   }
 
+  // Generic DELETE request method
+  Future<Map<String, dynamic>> _delete(String endpoint) async {
+    try {
+      final headers = await _headers;
+      final response = await http
+          .delete(
+            Uri.parse('${ApiConfig.apiBaseUrl}$endpoint'),
+            headers: headers,
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+        throw Exception('Invalid response format');
+      } else {
+        throw Exception('Failed to delete data: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
   // ==================== AUTHENTICATION API ====================
 
   /// Login a user
@@ -253,7 +289,7 @@ class ApiService {
       final response = await http
           .post(
             Uri.parse('${ApiConfig.apiBaseUrl}/auth/login'),
-            headers: _headers,
+            headers: await _headers,
             body: json.encode({
               'email': email,
               'password': password,
@@ -389,11 +425,12 @@ class ApiService {
   Future<Map<String, dynamic>> updateCompanyModifications(
       String companyId, Map<String, dynamic> updates) async {
     try {
+      final headers = await _headers;
       final response = await http
           .patch(
             Uri.parse(
                 '${ApiConfig.apiBaseUrl}/admin/$companyId/settings/modifications'),
-            headers: _headers,
+            headers: headers,
             body: json.encode(updates),
           )
           .timeout(ApiConfig.requestTimeout);
@@ -521,16 +558,25 @@ class ApiService {
         };
       }
 
-      final url = Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk');
+      // For web builds, multipart is not supported, so we'll use base64 approach
+      final bytes = await file.readAsBytes();
+      final base64File = base64Encode(bytes);
+      final fileName = file.path.split('/').last;
 
-      var request = http.MultipartRequest('POST', url);
-      request.headers['Authorization'] = 'Bearer $token';
-      request.fields['passtype'] = passType;
-      request.fields['generatedBy'] = userId;
-      request.files.add(await http.MultipartFile.fromPath('upload', file.path));
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'file': base64File,
+          'fileName': fileName,
+          'passtype': passType,
+          'generatedBy': userId,
+        }),
+      ).timeout(ApiConfig.requestTimeout);
 
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
       final responseBody = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -750,10 +796,11 @@ class ApiService {
     try {
       // Note: This endpoint currently mounted at /auth/staff in backend index.js
       final uri = Uri.parse('${ApiConfig.apiBaseUrl}/auth/staff');
+      final headers = await _headers;
       final response = await http
           .get(
             uri,
-            headers: _headers,
+            headers: headers,
           )
           .timeout(ApiConfig.requestTimeout);
 
@@ -915,9 +962,10 @@ class ApiService {
   Future<http.Response> getHeadDetails(String headId,
       {String? companyId}) async {
     final companyIdToUse = companyId ?? await ApiConfig.getCompanyId();
+    final headers = await _headers;
     final response = await http.get(
       Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyIdToUse/heads/$headId'),
-      headers: _headers,
+      headers: headers,
     );
     return response;
   }
@@ -925,9 +973,10 @@ class ApiService {
   Future<http.Response> updateHead(String headId, Map<String, dynamic> data,
       {String? companyId}) async {
     final companyIdToUse = companyId ?? await ApiConfig.getCompanyId();
+    final headers = await _headers;
     final response = await http.patch(
       Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyIdToUse/heads/$headId'),
-      headers: _headers,
+      headers: headers,
       body: json.encode(data),
     );
     return response;
@@ -941,18 +990,32 @@ class ApiService {
   Future<Map<String, dynamic>> uploadBulkEpasses(
       {required String companyId, required String filePath}) async {
     try {
-      final uri = Uri.parse(
-          '${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk');
+      final String? token = await _secureStorage.read(key: 'authToken');
 
-      final request = http.MultipartRequest('POST', uri);
-      // Do not set Content-Type header manually for multipart
-      request.headers.addAll({'Accept': 'application/json'});
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
 
-      final file = await http.MultipartFile.fromPath('upload', filePath);
-      request.files.add(file);
+      // For web builds, multipart is not supported, so we'll use base64 approach
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+      final base64File = base64Encode(bytes);
+      final fileName = file.path.split('/').last;
 
-      final streamed = await request.send().timeout(ApiConfig.requestTimeout);
-      final response = await http.Response.fromStream(streamed);
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/epasses/bulk'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'file': base64File,
+          'fileName': fileName,
+        }),
+      ).timeout(ApiConfig.requestTimeout);
 
       final data = json.decode(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -970,10 +1033,11 @@ class ApiService {
   Future<Map<String, dynamic>> putCompliances(
       {required String companyId, required List<String> compliances}) async {
     try {
+      final headers = await _headers;
       final resp = await http
           .put(
             Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/compliances'),
-            headers: _headers,
+            headers: headers,
             body: json.encode({
               'compliances': compliances,
             }),
@@ -1000,10 +1064,11 @@ class ApiService {
       Map<String, dynamic> fields = const {},
       List<String> remove = const []}) async {
     try {
+      final headers = await _headers;
       final resp = await http
           .put(
             Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/visitor-form'),
-            headers: _headers,
+            headers: headers,
             body: json.encode({'fields': fields, 'remove': remove}),
           )
           .timeout(ApiConfig.requestTimeout);
@@ -1019,9 +1084,10 @@ class ApiService {
   Future<Map<String, dynamic>> deleteCompliances(
       {required String companyId, required List<String> remove}) async {
     try {
+      final headers = await _headers;
       final req = http.Request('DELETE',
           Uri.parse('${ApiConfig.apiBaseUrl}/admin/$companyId/compliances'));
-      req.headers.addAll(_headers);
+      req.headers.addAll(headers);
       req.body = json.encode({'remove': remove});
       final streamed = await req.send().timeout(ApiConfig.requestTimeout);
       final resp = await http.Response.fromStream(streamed);
@@ -1048,6 +1114,344 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error fetching returning visitors: $e');
+    }
+  }
+
+  // ==================== COMPANY MANAGEMENT API ====================
+
+  /// Create a new company with admin user
+  /// POST /api/companies
+  Future<Map<String, dynamic>> createCompany({
+    required String companyName,
+    required String email,
+    required String adminName,
+    required String adminEmail,
+    required String adminPassword,
+    String? adminMobile,
+    String? phone,
+    String plan = 'free',
+  }) async {
+    try {
+      final headers = await _headers;
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiBaseUrl}/companies'),
+            headers: headers,
+            body: json.encode({
+              'companyName': companyName,
+              'email': email,
+              'adminName': adminName,
+              'adminEmail': adminEmail,
+              'adminPassword': adminPassword,
+              'adminMobile': adminMobile,
+              'phone': phone,
+              'plan': plan,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Company created successfully',
+          'data': data
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? data['error'] ?? 'Failed to create company',
+          'statusCode': response.statusCode
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e'
+      };
+    }
+  }
+
+  /// Get company details by ID
+  /// GET /api/companies/:id
+  Future<Map<String, dynamic>> getCompany(String companyId) async {
+    try {
+      final response = await _get('/companies/$companyId');
+
+      // The API returns the company object directly.
+      // We wrap it in the format the UI expects.
+      return {
+        'success': true,
+        'data': response
+      };
+    } catch (e) {
+      // The _get method throws an exception on failure, which is caught here.
+      // We re-throw it to be handled by the UI.
+      throw Exception('Error fetching company: $e');
+    }
+  }
+
+  /// Update company details
+  /// PATCH /api/companies/:id
+  Future<Map<String, dynamic>> updateCompany({
+    required String companyId,
+    String? companyName,
+    String? email,
+    String? phone,
+    String? companyLogo,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      final Map<String, dynamic> updateData = {};
+      if (companyName != null) updateData['companyName'] = companyName;
+      if (email != null) updateData['email'] = email;
+      if (phone != null) updateData['phone'] = phone;
+      if (companyLogo != null) updateData['companyLogo'] = companyLogo;
+
+      final response = await http
+          .patch(
+            Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: json.encode(updateData),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Company updated successfully',
+          'data': data
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? data['error'] ?? 'Failed to update company',
+          'statusCode': response.statusCode
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e'
+      };
+    }
+  }
+
+  /// Change company plan
+  /// POST /api/companies/:companyId/plan
+  Future<Map<String, dynamic>> changeCompanyPlan({
+    required String companyId,
+    required String newPlan,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/plan'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: json.encode({
+              'plan': newPlan,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Plan changed successfully',
+          'data': data
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? data['error'] ?? 'Failed to change plan',
+          'statusCode': response.statusCode
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e'
+      };
+    }
+  }
+
+  /// Get company features based on current plan
+  /// GET /api/companies/:id/features
+  Future<Map<String, dynamic>> getCompanyFeatures(String companyId) async {
+    try {
+      final response = await _get('/companies/$companyId/features');
+
+      if (response['success'] == true) {
+        return {
+          'success': true,
+          'features': response['features'] ?? {},
+          'plan': response['plan'] ?? 'free',
+          'limits': response['limits'] ?? {}
+        };
+      } else {
+        throw Exception('Failed to fetch company features');
+      }
+    } catch (e) {
+      throw Exception('Error fetching company features: $e');
+    }
+  }
+
+  /// Upload company logo
+  /// POST /api/companies/:id/upload-logo
+  Future<Map<String, dynamic>> uploadCompanyLogo({
+    required String companyId,
+    required String filePath,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      // For web builds, multipart is not supported, so we'll use a different approach
+      // We'll send the file as base64 encoded data
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+      final base64File = base64Encode(bytes);
+      final fileName = file.path.split('/').last;
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/upload-logo'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'file': base64File,
+          'fileName': fileName,
+        }),
+      ).timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Logo uploaded successfully',
+          'logoUrl': data['logoUrl']
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? data['error'] ?? 'Failed to upload logo',
+          'statusCode': response.statusCode
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e'
+      };
+    }
+  }
+
+  /// Validate plan change (check if allowed)
+  /// POST /api/companies/:id/validate-plan
+  Future<Map<String, dynamic>> validatePlanChange({
+    required String companyId,
+    required String newPlan,
+  }) async {
+    try {
+      final String? token = await _secureStorage.read(key: 'authToken');
+
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Authentication error. Please log in again.'
+        };
+      }
+
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.apiBaseUrl}/companies/$companyId/validate-plan'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: json.encode({
+              'newPlan': newPlan,
+            }),
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'valid': data['valid'] ?? false,
+          'message': data['message'] ?? 'Plan change validated'
+        };
+      } else {
+        return {
+          'success': false,
+          'valid': false,
+          'message': data['message'] ?? data['error'] ?? 'Plan validation failed',
+          'statusCode': response.statusCode
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'valid': false,
+        'message': 'Network error: $e'
+      };
+    }
+  }
+
+  /// Get company plan history
+  /// GET /api/companies/:id/plan-history
+  Future<Map<String, dynamic>> getCompanyPlanHistory(String companyId) async {
+    try {
+      final response = await _get('/companies/$companyId/plan-history');
+
+      if (response['success'] == true && response['data'] != null) {
+        return {
+          'success': true,
+          'history': response['data']
+        };
+      } else {
+        throw Exception('Failed to fetch plan history');
+      }
+    } catch (e) {
+      throw Exception('Error fetching plan history: $e');
     }
   }
 }

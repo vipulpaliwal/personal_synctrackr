@@ -66,10 +66,15 @@ class OthersCheckinController extends GetxController {
         isIdProofRequired.value = fields['idProofRequired'] == true;
         idCaptureRequired.value = fields['idProofPhotoRequired'] == true;
         final idType = fields['idType'];
-        if (idType is String && idType.isNotEmpty)
+        if (idType is String && idType.isNotEmpty) {
           selectedIdType.value = idType;
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      // Don't clear the form settings if an error occurs
+      // This will keep the last known settings
+      print('Failed to load visitor form settings: $e');
+    }
   }
 
   // Validators
@@ -129,14 +134,14 @@ class OthersCheckinController extends GetxController {
     }
   }
 
-  @override
-  void onClose() {
-    fullNameController.dispose();
-    emailController.dispose();
-    departmentController.dispose();
-    designationController.dispose();
-    phoneController.dispose();
-    idNumberController.dispose();
-    super.onClose();
-  }
+  // @override
+  // void onClose() {
+  //   fullNameController.dispose();
+  //   emailController.dispose();
+  //   departmentController.dispose();
+  //   designationController.dispose();
+  //   phoneController.dispose();
+  //   idNumberController.dispose();
+  //   super.onClose();
+  // }
 }

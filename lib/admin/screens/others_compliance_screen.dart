@@ -110,6 +110,7 @@ class OthersComplianceScreen extends StatelessWidget {
                                 onChanged: (value) {
                                   controller.updateQuestion(index, value);
                                 },
+                                onDelete: () => controller.deleteCompliance(index),
                               );
                             }),
                           const SizedBox(height: 12),
@@ -180,12 +181,14 @@ class ComplianceQuestion extends StatelessWidget {
   final int index;
   final String question;
   final ValueChanged<String> onChanged;
+  final VoidCallback onDelete;
 
   const ComplianceQuestion({
     super.key,
     required this.index,
     required this.question,
     required this.onChanged,
+    required this.onDelete,
   });
 
   @override
@@ -227,6 +230,13 @@ class ComplianceQuestion extends StatelessWidget {
                   border: InputBorder.none,
                 ),
               ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: isDarkMode ? Colors.redAccent : Colors.red,
+              ),
+              onPressed: onDelete,
             ),
           ],
         ),

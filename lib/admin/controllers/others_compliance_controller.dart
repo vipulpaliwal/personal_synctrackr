@@ -36,6 +36,33 @@ class ComplianceController extends GetxController {
     questions[index] = value;
   }
 
+  // Delete compliance
+  void deleteCompliance(int index) {
+    Get.defaultDialog(
+      title: 'Delete Compliance',
+      middleText: 'Are you sure you want to delete this compliance?',
+      textConfirm: 'Delete',
+      textCancel: 'Cancel',
+      onConfirm: () async {
+        final complianceToRemove = questions[index];
+        questions.removeAt(index);
+        Get.back();
+        try {
+          final companyId = await ApiConfig.getCompanyId();
+          await _api.deleteCompliances(
+            companyId: companyId,
+            remove: [complianceToRemove],
+          );
+          Get.snackbar('Success', 'Compliance deleted successfully');
+        } catch (e) {
+          Get.snackbar('Error', 'Failed to delete compliance: $e');
+          // If the API call fails, add the compliance back to the list
+          questions.insert(index, complianceToRemove);
+        }
+      },
+    );
+  }
+
   Future<void> _loadFromCompanySettings() async {
     try {
       final companyId = await ApiConfig.getCompanyId();
