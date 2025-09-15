@@ -150,13 +150,16 @@ class LiveFeed extends StatelessWidget {
       child: Row(
         children: [
           Container(
+            constraints: BoxConstraints(minWidth: 40),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: _getStatusColor(item.status, isDarkMode, true),
               borderRadius: BorderRadius.circular(4),
             ),
+            alignment: Alignment.center,
             child: Text(
               _getStatusDisplayText(item.status),
+              textAlign: TextAlign.center,
               style: GoogleFonts.lexend(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
