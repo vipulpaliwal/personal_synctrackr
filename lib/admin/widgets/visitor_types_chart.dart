@@ -724,39 +724,6 @@ class VisitorTypesChart extends StatelessWidget {
 
     return Obx(() {
       final isDarkMode = mainController.isDarkMode.value;
-      final visitorTypesFromApi = controller.visitorTypes;
-
-      final defaultTypes = {
-        'Meeting': 0,
-        'Vendor': 0,
-        'Interview': 0,
-        'Delivery': 0,
-      };
-
-      final totalVisitors = visitorTypesFromApi.values
-          .fold<double>(0.0, (sum, count) => sum + count);
-
-      for (var entry in visitorTypesFromApi.entries) {
-        final type = entry.key;
-        final count = entry.value;
-        if (type.isNotEmpty) {
-          final formattedType =
-              type[0].toUpperCase() + type.substring(1).toLowerCase();
-          if (defaultTypes.containsKey(formattedType)) {
-            defaultTypes[formattedType] = count.toInt();
-          }
-        }
-      }
-
-      final chartData = defaultTypes.entries.map((entry) {
-        return _VisitorData(
-          entry.key,
-          totalVisitors > 0 ? (entry.value / totalVisitors) * 100 : 0,
-          _getColorForVisitorType(entry.key),
-        );
-      }).toList();
-
-      final chartDataForChart = chartData.reversed.toList();
       return Container(
         height: 300,
         padding: const EdgeInsets.all(20),
@@ -816,8 +783,12 @@ class VisitorTypesChart extends StatelessWidget {
                             controller.changeVisitorTypeRange(newValue);
                           }
                         },
-                        items: <String>['This Week', 'This Month', 'This Year', 'All']
-                            .map<DropdownMenuItem<String>>((String value) {
+                        items: <String>[
+                          'This Week',
+                          'This Month',
+                          'This Year',
+                          'All'
+                        ].map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -828,106 +799,36 @@ class VisitorTypesChart extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 180,
-                  height: 180,
-                  child: SfCircularChart(
-                    margin: EdgeInsets.zero,
-                    series: <CircularSeries>[
-                      RadialBarSeries<_VisitorData, String>(
-                        dataSource: chartDataForChart,
-                        xValueMapper: (_VisitorData data, _) => data.type,
-                        yValueMapper: (_VisitorData data, _) => data.value,
-                        pointColorMapper: (_VisitorData data, _) => data.color,
-                        maximumValue: 100,
-                        cornerStyle: CornerStyle.bothCurve,
-                        radius: '100%',
-                        innerRadius: '30%',
-                        gap: '10%',
-                        trackColor: isDarkMode
-                            ? adminAppColors.darkBorder
-                            : Colors.grey.shade100, // baki space grey
-                        trackOpacity: 1, // full visible grey
-                        dataLabelSettings:
-                            const DataLabelSettings(isVisible: false),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _buildLegendItems(chartData, isDarkMode),
-                  ),
-                ),
-              ],
+            Expanded(
+              child: Obx(() {
+                final isLoading = controller.isVisitorTypesLoading.value;
+                final hasError = controller.visitorTypesError.value.isNotEmpty;
+                final hasData = controller.visitorTypesChartData.isNotEmpty;
+
+                if (!hasData && isLoading) {
+                  return _buildLoadingState(isDarkMode);
+                }
+                if (hasError) {
+                  return _buildErrorState(
+                    controller.visitorTypesError.value,
+                    isDarkMode,
+                    () => controller.fetchVisitorTypes(),
+                  );
+                }
+                if (!hasData) {
+                  return _buildEmptyState(isDarkMode);
+                }
+
+                return _ChartAndLegend(
+                  chartData: controller.visitorTypesChartData,
+                  isDarkMode: isDarkMode,
+                );
+              }),
             ),
           ],
         ),
       );
     });
-  }
-
-  Color _getColorForVisitorType(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
-        return adminAppColors.meetingChartColor;
-      case 'vendor':
-        return adminAppColors.vendorChartColor;
-      case 'interview':
-        return adminAppColors.interviewChartColor;
-      case 'delivery':
-        return adminAppColors.deliveryChartColor;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  List<Widget> _buildLegendItems(List<_VisitorData> items, bool isDarkMode) {
-    return items
-        .map((item) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: item.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      item.type,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: isDarkMode
-                            ? adminAppColors.darkTextSecondary
-                            : const Color(0xFF374151),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    "${item.value.toStringAsFixed(0)}%",
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isDarkMode
-                          ? adminAppColors.darkTextPrimary
-                          : adminAppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ))
-        .toList();
   }
 
   Widget _buildLoadingState(bool isDarkMode) {
@@ -1026,10 +927,99 @@ class VisitorTypesChart extends StatelessWidget {
   }
 }
 
-class _VisitorData {
-  final String type;
-  final double value;
-  final Color color;
+class _ChartAndLegend extends StatelessWidget {
+  final List<VisitorChartData> chartData;
+  final bool isDarkMode;
 
-  _VisitorData(this.type, this.value, this.color);
+  const _ChartAndLegend({
+    required this.chartData,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chartDataForChart = chartData.reversed.toList();
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 180,
+          height: 180,
+          child: SfCircularChart(
+            margin: EdgeInsets.zero,
+            series: <CircularSeries>[
+              RadialBarSeries<VisitorChartData, String>(
+                dataSource: chartDataForChart,
+                xValueMapper: (VisitorChartData data, _) => data.type,
+                yValueMapper: (VisitorChartData data, _) => data.value,
+                pointColorMapper: (VisitorChartData data, _) => data.color,
+                maximumValue: 100,
+                cornerStyle: CornerStyle.bothCurve,
+                radius: '100%',
+                innerRadius: '30%',
+                gap: '10%',
+                trackColor: isDarkMode
+                    ? adminAppColors.darkBorder
+                    : Colors.grey.shade100,
+                trackOpacity: 1,
+                dataLabelSettings: const DataLabelSettings(isVisible: false),
+                animationDuration: 0,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _buildLegendItems(chartData, isDarkMode),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildLegendItems(
+      List<VisitorChartData> items, bool isDarkMode) {
+    return items
+        .map((item) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: item.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item.type,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: isDarkMode
+                            ? adminAppColors.darkTextSecondary
+                            : const Color(0xFF374151),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    "${item.value.toStringAsFixed(0)}%",
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDarkMode
+                          ? adminAppColors.darkTextPrimary
+                          : adminAppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ))
+        .toList();
+  }
 }

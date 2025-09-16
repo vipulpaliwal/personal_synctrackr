@@ -1,10 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:synctrackr/admin/config/api_config.dart';
+import 'package:synctrackr/admin/models/visitor_model.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
+import 'package:synctrackr/admin/utils/colors.dart';
+
+class VisitorChartData {
+  final String type;
+  final double value;
+  final Color color;
+
+  VisitorChartData(this.type, this.value, this.color);
+}
 
 class DashboardController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -18,10 +28,10 @@ class DashboardController extends GetxController {
 
   // Visitor Statistics
   var visitorStats = <String, int>{}.obs;
-  var isStatsLoading = true.obs;
+  var isStatsLoading = true.obs; // Start in loading state
   var statsError = ''.obs;
   var selectedStatRange =
-      'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
+      'Weekly'.obs; // 'Weekly', 'Monthly', 'Daily'
 
   // Visitor Types (Pie Chart)
   var visitorTypes = <String, double>{}.obs;
@@ -29,6 +39,7 @@ class DashboardController extends GetxController {
   var visitorTypesError = ''.obs;
   var selectedVisitorTypeRange =
       'This Week'.obs; // 'This Week', 'This Month', 'This Year', 'All'
+  var visitorTypesChartData = <VisitorChartData>[].obs;
 
   // Pending Visitors
   var pendingVisitors = <PendingVisitor>[].obs;
@@ -64,6 +75,7 @@ class DashboardController extends GetxController {
       fetchPendingVisitors();
       fetchStatsCards();
       fetchMonthlyVisitors();
+      updateVisitorStatsSilently(); // Silent update for stats
     });
   }
 
@@ -117,6 +129,21 @@ class DashboardController extends GetxController {
     }
   }
 
+  void updateVisitorStatsSilently() async {
+    try {
+      final stats =
+          await _apiService.getStatsSeries(companyId, selectedStatRange.value);
+      final Map<String, int> formattedStats = {
+        for (var stat in stats) stat['date']: (stat['count'] as num).toInt()
+      };
+      visitorStats.assignAll(formattedStats);
+      await _saveVisitorStatsToCache(formattedStats);
+    } catch (e) {
+      // Silently fail for real-time updates
+      print('Silent update failed: $e');
+    }
+  }
+
   void fetchVisitorTypes() async {
     try {
       isVisitorTypesLoading(true);
@@ -127,6 +154,7 @@ class DashboardController extends GetxController {
         for (var type in types) type.type: type.count.toDouble()
       };
       visitorTypes.assignAll(formattedTypes);
+      _updateChartData(formattedTypes);
       await _saveVisitorTypesToCache(formattedTypes);
     } catch (e) {
       visitorTypesError('Failed to load visitor types: $e');
@@ -135,6 +163,56 @@ class DashboardController extends GetxController {
       }
     } finally {
       isVisitorTypesLoading(false);
+    }
+  }
+
+  void _updateChartData(Map<String, double> sourceData) {
+    final defaultTypes = {
+      'Meeting': 0.0,
+      'Vendor': 0.0,
+      'Interview': 0.0,
+      'Delivery': 0.0,
+    };
+
+    final totalVisitors =
+        sourceData.values.fold<double>(0.0, (sum, count) => sum + count);
+
+    for (var entry in sourceData.entries) {
+      final type = entry.key;
+      final count = entry.value;
+      if (type.isNotEmpty) {
+        final formattedType =
+            type[0].toUpperCase() + type.substring(1).toLowerCase();
+        if (defaultTypes.containsKey(formattedType)) {
+          defaultTypes[formattedType] = count;
+        }
+      }
+    }
+
+    final List<VisitorChartData> computedData =
+        defaultTypes.entries.map((entry) {
+      return VisitorChartData(
+        entry.key,
+        totalVisitors > 0 ? (entry.value / totalVisitors) * 100 : 0,
+        _getColorForVisitorType(entry.key),
+      );
+    }).toList();
+
+    visitorTypesChartData.assignAll(computedData);
+  }
+
+  Color _getColorForVisitorType(String type) {
+    switch (type.toLowerCase()) {
+      case 'meeting':
+        return adminAppColors.meetingChartColor;
+      case 'vendor':
+        return adminAppColors.vendorChartColor;
+      case 'interview':
+        return adminAppColors.interviewChartColor;
+      case 'delivery':
+        return adminAppColors.deliveryChartColor;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -428,7 +506,8 @@ class DashboardController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String encodedData = jsonEncode(data);
-      await prefs.setString('visitorStatsCache', encodedData);
+      final cacheKey = 'visitorStatsCache_${selectedStatRange.value}';
+      await prefs.setString(cacheKey, encodedData);
     } catch (e) {
       print('Error saving visitor stats to cache: $e');
     }
@@ -437,7 +516,8 @@ class DashboardController extends GetxController {
   Future<void> _loadVisitorStatsFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? encodedData = prefs.getString('visitorStatsCache');
+      final cacheKey = 'visitorStatsCache_${selectedStatRange.value}';
+      final String? encodedData = prefs.getString(cacheKey);
       if (encodedData != null) {
         final Map<String, dynamic> decodedData = jsonDecode(encodedData);
         visitorStats.assignAll(decodedData.map((key, value) => MapEntry(key, value as int)));
@@ -463,7 +543,10 @@ class DashboardController extends GetxController {
       final String? encodedData = prefs.getString('visitorTypesCache');
       if (encodedData != null) {
         final Map<String, dynamic> decodedData = jsonDecode(encodedData);
-        visitorTypes.assignAll(decodedData.map((key, value) => MapEntry(key, value as double)));
+        final types =
+            decodedData.map((key, value) => MapEntry(key, value as double));
+        visitorTypes.assignAll(types);
+        _updateChartData(types);
       }
     } catch (e) {
       print('Error loading visitor types from cache: $e');

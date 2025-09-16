@@ -162,23 +162,23 @@ class EmployeeList extends StatelessWidget {
               ),
               filled: true,
               fillColor:
-                  isDarkMode ? adminAppColors.darkStatCard : Colors.grey[50],
+                  isDarkMode ? adminAppColors.darkStatCard : adminAppColors.lightSidebar,
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
                   color: isDarkMode
-                      ? adminAppColors.darkBorder
-                      : Colors.grey[300]!,
+                      ? adminAppColors.secondary
+                      : adminAppColors.primary,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide(
                   color: isDarkMode
-                      ? adminAppColors.darkBorder
-                      : Colors.grey[300]!,
+                      ? adminAppColors.secondary
+                      : adminAppColors.primary,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -208,15 +208,15 @@ class EmployeeList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isDarkMode
-                        ? adminAppColors.darkBorder
-                        : Colors.grey[300]!,
+                        ? adminAppColors.secondary
+                      : adminAppColors.primary,
                   ),
                 ),
                 child: DropdownButton<String>(
                   value: selectedStatus.isEmpty ? 'All' : selectedStatus,
                   dropdownColor: isDarkMode
                       ? adminAppColors.darkStatCard
-                      : adminAppColors.lightSidebar,
+                      : Colors.white,
                   style: GoogleFonts.lexend(
                     color: isDarkMode ? Colors.white : Colors.black,
                     fontSize: 14,
@@ -252,38 +252,67 @@ class EmployeeList extends StatelessWidget {
                     final displayText = status == 'All' && selectedStatus.isEmpty
                         ? 'Filter'
                         : controller.getStatusDisplayName(status);
+                    // return DropdownMenuItem<String>(
+                    //   value: status,
+                    //   child: Container(
+                    //     constraints: const BoxConstraints(maxWidth: 200),
+                    //     color: isDarkMode
+                    //         ? adminAppColors.darkStatCard
+                    //         : adminAppColors.lightSidebar,
+                    //     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    //     child: Row(
+                    //       mainAxisSize: MainAxisSize.min,
+                    //       children: [
+                    //         ImageIcon(
+                    //           color: isDarkMode ? Colors.white : Colors.black,
+                    //           AssetImage(AllImages.filter),
+                    //           size: 16,
+                    //         ),
+                    //         const SizedBox(width: 8),
+                    //         Expanded(
+                    //           child: Text(
+                    //             displayText,
+                    //             style: GoogleFonts.lexend(
+                    //               color: isDarkMode ? Colors.white : Colors.black,
+                    //               fontSize: 14,
+                    //             ),
+                    //             overflow: TextOverflow.ellipsis,
+                    //             maxLines: 1,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // );
                     return DropdownMenuItem<String>(
-                      value: status,
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 200),
-                        color: isDarkMode
-                            ? adminAppColors.darkStatCard
-                            : adminAppColors.lightSidebar,
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ImageIcon(
-                              color: isDarkMode ? Colors.white : Colors.black,
-                              AssetImage(AllImages.filter),
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                displayText,
-                                style: GoogleFonts.lexend(
-                                  color: isDarkMode ? Colors.white : Colors.black,
-                                  fontSize: 14,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+  value: status,
+  child: Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ImageIcon(
+          color: isDarkMode ? Colors.white : Colors.black,
+          AssetImage(AllImages.filter),
+          size: 16,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            displayText,
+            style: GoogleFonts.lexend(
+              color: isDarkMode ? Colors.white : Colors.black,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+
                   }).toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
@@ -310,13 +339,13 @@ class EmployeeList extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: isExporting
-                        ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
+                        ? (isDarkMode ? adminAppColors.darkStatCard : adminAppColors.lightSidebar)
                         : (isDarkMode ? adminAppColors.darkStatCard : adminAppColors.lightSidebar),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isDarkMode
-                          ? adminAppColors.darkBorder
-                          : Colors.grey[300]!,
+                          ? adminAppColors.secondary
+                      : adminAppColors.primary,
                     ),
                   ),
                   child: Row(

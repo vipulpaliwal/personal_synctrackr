@@ -987,7 +987,7 @@ class ApiService {
       String companyId, String range) async {
     try {
       String apiRange;
-      switch (range) {
+      switch (range.toLowerCase()) {
         case 'monthly':
           apiRange = 'month';
           break;
@@ -1003,6 +1003,7 @@ class ApiService {
         default:
           apiRange = 'week'; // Default to week
       }
+
 
       final response = await _get('/admin/$companyId/stats/series/$apiRange');
       if (response['success'] == true && response['data'] != null) {
