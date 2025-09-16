@@ -132,19 +132,19 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('QR Code Scanner'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            onPressed: () => controller.toggleTorch(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.cameraswitch),
-            onPressed: () => controller.switchCamera(),
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text('QR Code Scanner'),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.flash_on),
+      //       onPressed: () => controller.toggleTorch(),
+      //     ),
+      //     IconButton(
+      //       icon: const Icon(Icons.cameraswitch),
+      //       onPressed: () => controller.switchCamera(),
+      //     ),
+      //   ],
+      // ),
       body: Column(
         children: [
           Expanded(
@@ -179,7 +179,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       ),
                     if (scannedData == null)
                       const Text(
-                        "📷 Point the camera at a QR code",
+                        "Point the camera at a QR code",
                         style: TextStyle(fontSize: 16),
                       ),
                   ],

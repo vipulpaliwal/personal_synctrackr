@@ -835,15 +835,72 @@ class ApiService {
     }
   }
 
+  /// Export visitors as CSV for a specific company
+  /// GET /api/admin/:companyId/visitors/export.csv
+  Future<http.Response> exportVisitorsCsv({
+    required String companyId,
+    String? status,
+    String? search,
+    String? purpose,
+    String? from,
+    String? to,
+  }) async {
+    try {
+      // Build query parameters
+      final queryParams = <String>[];
+      if (status != null && status.isNotEmpty && status != 'All') {
+        queryParams.add('status=$status');
+      }
+      if (search != null && search.isNotEmpty) {
+        queryParams.add('search=$search');
+      }
+      if (purpose != null && purpose.isNotEmpty) {
+        queryParams.add('purpose=$purpose');
+      }
+      if (from != null && from.isNotEmpty) {
+        queryParams.add('from=$from');
+      }
+      if (to != null && to.isNotEmpty) {
+        queryParams.add('to=$to');
+      }
+
+      final endpoint = queryParams.isNotEmpty
+          ? '/admin/$companyId/visitors/export.csv?${queryParams.join('&')}'
+          : '/admin/$companyId/visitors/export.csv';
+
+      final headers = await _headers;
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.apiBaseUrl}$endpoint'),
+            headers: headers,
+          )
+          .timeout(ApiConfig.requestTimeout);
+
+      return response;
+    } catch (e) {
+      throw Exception('Error exporting visitors CSV: $e');
+    }
+  }
+
   /// Fetch visitors for a specific company
   /// GET /api/admin/:companyId/visitors
-  Stream<List<Visitor>> getVisitors(String companyId) {
+  Stream<List<Visitor>> getVisitors(String companyId, {String? status}) {
     late StreamController<List<Visitor>> controller;
     Timer? timer;
 
     Future<void> fetch() async {
       try {
-        final response = await _get('/admin/$companyId/visitors');
+        // Build query parameters
+        final queryParams = <String>[];
+        if (status != null && status.isNotEmpty) {
+          queryParams.add('status=$status');
+        }
+
+        final endpoint = queryParams.isNotEmpty
+            ? '/admin/$companyId/visitors?${queryParams.join('&')}'
+            : '/admin/$companyId/visitors';
+
+        final response = await _get(endpoint);
         if (response['success'] == true && response['data'] != null) {
           List<dynamic> data = response['data'];
           final items = data

@@ -8,6 +8,7 @@
       "version": "1.0.0+1",
       "dependencies": [
         "connectivity_plus",
+        "cross_file",
         "cupertino_icons",
         "desktop_drop",
         "dotted_border",
@@ -107,6 +108,14 @@
         "permission_handler_html",
         "permission_handler_platform_interface",
         "permission_handler_windows"
+      ]
+    },
+    {
+      "name": "cross_file",
+      "version": "0.3.4+2",
+      "dependencies": [
+        "meta",
+        "web"
       ]
     },
     {
@@ -650,14 +659,6 @@
       "name": "mime",
       "version": "2.0.0",
       "dependencies": []
-    },
-    {
-      "name": "cross_file",
-      "version": "0.3.4+2",
-      "dependencies": [
-        "meta",
-        "web"
-      ]
     },
     {
       "name": "nm",

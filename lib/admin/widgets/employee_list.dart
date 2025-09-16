@@ -192,55 +192,164 @@ class EmployeeList extends StatelessWidget {
         // Filter and Export Buttons
         Row(
           children: [
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDarkMode
-                    ? adminAppColors.darkStatCard
-                    : adminAppColors.lightSidebar,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
+            // Status Filter Dropdown
+            Obx(() {
+              final selectedStatus = controller.selectedStatus.value;
+              final statusOptions = controller.getStatusOptions();
+
+              return Container(
+                height: 40,
+                width: 180, // Fixed width for consistent dropdown size
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? adminAppColors.darkStatCard
+                      : adminAppColors.lightSidebar,
                   borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(
+                  border: Border.all(
                     color: isDarkMode
                         ? adminAppColors.darkBorder
                         : Colors.grey[300]!,
                   ),
                 ),
-              ),
-              onPressed: () {},
-              icon: ImageIcon(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                  AssetImage(AllImages.filter),
-                  size: 18),
-              label: Text("Filter",
+                child: DropdownButton<String>(
+                  value: selectedStatus.isEmpty ? 'All' : selectedStatus,
+                  dropdownColor: isDarkMode
+                      ? adminAppColors.darkStatCard
+                      : adminAppColors.lightSidebar,
                   style: GoogleFonts.lexend(
-                      color: isDarkMode ? Colors.white : Colors.black)),
-            ),
+                    color: isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 14,
+                  ),
+                  underline: const SizedBox.shrink(),
+                  icon: const SizedBox.shrink(), // Remove dropdown arrow
+                  selectedItemBuilder: (BuildContext context) {
+                    return statusOptions.map((String status) {
+                      final displayText = selectedStatus.isEmpty
+                          ? 'Filter'
+                          : controller.getStatusDisplayName(selectedStatus);
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ImageIcon(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                            AssetImage(AllImages.filter),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            displayText,
+                            style: GoogleFonts.lexend(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList();
+                  },
+                  items: statusOptions.map((String status) {
+                    final displayText = status == 'All' && selectedStatus.isEmpty
+                        ? 'Filter'
+                        : controller.getStatusDisplayName(status);
+                    return DropdownMenuItem<String>(
+                      value: status,
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 200),
+                        color: isDarkMode
+                            ? adminAppColors.darkStatCard
+                            : adminAppColors.lightSidebar,
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ImageIcon(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              AssetImage(AllImages.filter),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                displayText,
+                                style: GoogleFonts.lexend(
+                                  color: isDarkMode ? Colors.white : Colors.black,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      if (newValue == 'All') {
+                        controller.clearStatusFilter();
+                      } else {
+                        controller.updateStatusFilter(newValue);
+                      }
+                    }
+                  },
+                ),
+              );
+            }),
             const SizedBox(width: 12),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDarkMode
-                    ? adminAppColors.darkStatCard
-                    : adminAppColors.lightSidebar,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(
-                    color: isDarkMode
-                        ? adminAppColors.darkBorder
-                        : Colors.grey[300]!,
+            // Export Button (same size as filter)
+            Obx(() {
+              final isExporting = controller.isExporting.value;
+              final selectedStatus = controller.selectedStatus.value;
+
+              return GestureDetector(
+                onTap: isExporting ? null : () => controller.exportVisitorsCsv(selectedStatus.isEmpty ? 'All' : selectedStatus),
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: isExporting
+                        ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
+                        : (isDarkMode ? adminAppColors.darkStatCard : adminAppColors.lightSidebar),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDarkMode
+                          ? adminAppColors.darkBorder
+                          : Colors.grey[300]!,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isExporting)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                          ),
+                        )
+                      else
+                        ImageIcon(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          AssetImage(AllImages.exportEmployeeList),
+                          size: 16,
+                        ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isExporting ? "Exporting..." : "Export",
+                        style: GoogleFonts.lexend(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              onPressed: () {},
-              icon: ImageIcon(
-                  color: isDarkMode ? Colors.white : Colors.black,
-                  AssetImage(AllImages.exportEmployeeList),
-                  size: 18),
-              label: Text("Export",
-                  style: GoogleFonts.lexend(
-                      color: isDarkMode ? Colors.white : Colors.black)),
-            ),
+              );
+            }),
           ],
         ),
       ],
