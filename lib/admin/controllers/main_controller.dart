@@ -27,6 +27,7 @@ class MainController extends GetxController {
   GlobalKey<ScaffoldState> get scaffoldKey => _scaffoldKey;
 
   late PageController pageController;
+
   final RxInt _selectedIndex = 0.obs;
   final Rx<Visitor?> _selectedVisitor = Rx<Visitor?>(null);
   final Rx<Employee?> _selectedEmployee = Rx<Employee?>(null);
@@ -42,8 +43,6 @@ class MainController extends GetxController {
   void onInit() {
     super.onInit();
     pageController = PageController();
-    // Initialize DashboardController to prevent "not found" errors
-    Get.lazyPut(() => DashboardController());
     // Automatically detect system theme and set initial theme
     _detectSystemTheme();
 

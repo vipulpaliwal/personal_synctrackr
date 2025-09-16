@@ -26,6 +26,8 @@ class EmployeeListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+     
+
     _initialize();
   }
 
@@ -64,7 +66,7 @@ class EmployeeListController extends GetxController {
   @override
   void onClose() {
     _visitorSubscription.cancel();
-    searchController.dispose();
+    // searchController.dispose();
     super.onClose();
   }
 

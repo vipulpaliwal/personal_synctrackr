@@ -48,18 +48,18 @@ class RouteGenerator {
         name: AppRoutes.profile,
         page: () => const ProfileScreen(),
       ),
-      GetPage(
-        name: AppRoutes.uploadid,
-        page: () => const UploadIdScreen(),
-      ),
+      // GetPage(
+      //   name: AppRoutes.uploadid,
+      //   page: () => const UploadIdScreen(),
+      // ),
       GetPage(
         name: AppRoutes.meetingwith,
         page: () => const MeetingWithScreen(),
       ),
-      GetPage(
-        name: AppRoutes.uploadphoto,
-        page: () => const UploadPhotoScreen(),
-      ),
+      // GetPage(
+      //   name: AppRoutes.uploadphoto,
+      //   page: () => const UploadPhotoScreen(),
+      // ),
       GetPage(
         name: AppRoutes.compliance,
         page: () => const ComplianceScreen(),

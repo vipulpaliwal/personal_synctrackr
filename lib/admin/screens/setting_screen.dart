@@ -176,10 +176,12 @@ class SettingsScreen extends StatelessWidget {
                               ? TabAlignment.start
                               : TabAlignment.fill,
                           indicatorSize:
-                              TabBarIndicatorSize.tab, // pura tab fill karega
+                              TabBarIndicatorSize.label, // pura tab fill karega
                           indicator: BoxDecoration(
-                              color: isdarkMode? adminAppColors.darkStatCard.withOpacity(0.7): Color(0xffBCD3FF)
-                                  .withOpacity(0.7), // active tab ka background
+                              color: isdarkMode
+                                  ? adminAppColors.darkStatCard.withOpacity(0.7)
+                                  : Color(0xffBCD3FF).withOpacity(
+                                      0.7), // active tab ka background
                               borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(15),
                                   topRight:
@@ -240,23 +242,56 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+// class _CustomTab extends StatelessWidget {
+//   final String text;
+//   const _CustomTab({required this.text});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       mainAxisSize: MainAxisSize.min,
+//       children: [
+//         SizedBox(height: 30, child: Center(child: Text(text))),
+//         const SizedBox(height: 6),
+//         Container(
+//           height: 1.5,
+//           width: double.infinity,
+//           color: adminAppColors.primary,
+//         ),
+//       ],
+//     );
+//   }
+// }
+
+//version 2
 class _CustomTab extends StatelessWidget {
   final String text;
   const _CustomTab({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(height: 30, child: Center(child: Text(text))),
-        const SizedBox(height: 6),
-        Container(
-          height: 1.5,
-          width: double.infinity,
-          color: adminAppColors.primary,
-        ),
-      ],
+    return SizedBox(
+      height: 40,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Center(
+              child: Text(text),
+            ),
+          ),
+          Container(
+            height: 2,
+            width: double.infinity, // pura tab width cover karega
+            color: adminAppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }
+
+// version3
+
+
+

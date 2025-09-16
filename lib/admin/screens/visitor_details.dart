@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:synctrackr/admin/controllers/dashboard_controller.dart';
 import 'package:synctrackr/admin/controllers/main_controller.dart';
 import 'package:synctrackr/admin/controllers/visitor_details_controller.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
@@ -61,6 +62,7 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get.put(DashboardController());
     final MainController mainController = Get.find();
     return Obx(() {
       final isDarkMode = mainController.isDarkMode.value;
@@ -88,7 +90,8 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   scrolledUnderElevation: 0.0,
-                  flexibleSpace: CommonHeader(title: capitalizeWords(visitor.name)),
+                  flexibleSpace:
+                      CommonHeader(title: capitalizeWords(visitor.name)),
                 ),
                 SliverToBoxAdapter(
                   child: SingleChildScrollView(

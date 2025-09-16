@@ -442,14 +442,15 @@ class NotificationsScreen extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: isDarkMode ? adminAppColors.primary : Colors.white,
+          activeColor: isDarkMode ? Colors.white : Colors.white,
           activeTrackColor: isDarkMode
-              ? adminAppColors.darkMainButton
+              ? adminAppColors.primary
               : const Color(0xFF4C6FFF),
+            
           inactiveTrackColor:
-              isDarkMode ? adminAppColors.secondary : const Color(0xFFADB5BD),
+              isDarkMode ? Colors.black12 : const Color(0xFFADB5BD),
           inactiveThumbColor:
-              isDarkMode ? adminAppColors.darkMainBackground : Colors.white,
+              isDarkMode ? Colors.white : Colors.white,
         ),
       ],
     );

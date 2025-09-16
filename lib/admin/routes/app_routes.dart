@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
+import 'package:synctrackr/admin/bindings/main_binding.dart';
 import 'package:synctrackr/admin/screens/admin_login_screen.dart';
 import 'package:synctrackr/admin/screens/main_screen.dart';
 import 'package:synctrackr/admin/screens/visitor_head_add_person.dart';
 import 'package:synctrackr/admin/screens/visitor_head_details_screen.dart';
 import 'package:synctrackr/admin/screens/admin_mobile_no_screen.dart';
 import 'package:synctrackr/admin/screens/admin_otp_verification_screen.dart';
-import 'package:synctrackr/admin/screens/checkedout_complete.dart';
+import 'package:synctrackr/admin/screens/manual_checkedout_complete.dart';
+import 'package:synctrackr/admin/screens/qr_scanner_screen.dart';
 
 // ignore: camel_case_types
 class adminAppRoutes {
@@ -17,6 +19,7 @@ class adminAppRoutes {
   static const String adminOtpVerificationScreen =
       '/admin-otp-verification-screen';
   static const String manualCheckoutComplete = '/manual-checkout-complete';
+  static const String qrScanner = '/qr-scanner';
 
   static final routes = [
     GetPage(name: main, page: () => const MainScreen()),
@@ -29,5 +32,6 @@ class adminAppRoutes {
         page: () => const AdminOtpVerificationScreen()),
     GetPage(
         name: manualCheckoutComplete, page: () => const ManualCheckOutScreen()),
+    GetPage(name: qrScanner, page: () => const QRScannerScreen()),
   ];
 }

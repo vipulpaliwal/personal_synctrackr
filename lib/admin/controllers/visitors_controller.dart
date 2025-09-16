@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:synctrackr/admin/models/visitor_model.dart';
+import 'package:synctrackr/admin/routes/app_routes.dart';
+import 'package:synctrackr/admin/services/api_services.dart';
 
 class VisitorsController extends GetxController {
+  final ApiService _apiService = ApiService();
   final RxString searchQuery = ''.obs;
   final RxInt currentPage = 1.obs;
   final int itemsPerPage = 10;
@@ -20,58 +23,50 @@ class VisitorsController extends GetxController {
   Future<void> fetchVisitors() async {
     try {
       isLoading(true);
-      // Using dummy data instead of API call
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-      final dummyVisitors = [
-        Visitor(
-          id: 1,
-          name: 'John Doe',
-          company: 'ABC Corp',
-          purpose: 'Meeting',
-          status: 'Pending',
-          appointmentDate: DateTime.now(),
-          createdAt: DateTime.now(),
-          host: Host(id: 1, name: 'Jane Smith', email: 'jane@example.com'),
-        ),
-        Visitor(
-          id: 2,
-          name: 'Alice Johnson',
-          company: 'XYZ Ltd',
-          purpose: 'Delivery',
-          status: 'Approved',
-          signedIn: DateTime.now().subtract(const Duration(hours: 1)),
-          appointmentDate: DateTime.now(),
-          createdAt: DateTime.now(),
-          host: Host(id: 2, name: 'Robert Brown', email: 'robert@example.com'),
-        ),
-        Visitor(
-          id: 3,
-          name: 'Bob Williams',
-          company: 'Tech Solutions',
-          purpose: 'Interview',
-          status: 'Rejected',
-          appointmentDate: DateTime.now(),
-          createdAt: DateTime.now(),
-          host: Host(id: 1, name: 'Jane Smith', email: 'jane@example.com'),
-        ),
-        Visitor(
-          id: 4,
-          name: 'Charlie Brown',
-          purpose: 'Maintenance',
-          status: 'Checked Out',
-          signedIn: DateTime.now().subtract(const Duration(hours: 2)),
-          signedOut: DateTime.now().subtract(const Duration(minutes: 30)),
-          appointmentDate: DateTime.now(),
-          createdAt: DateTime.now(),
-          host: Host(id: 3, name: 'Michael Davis', email: 'michael@example.com'),
-        ),
-      ];
-      visitors.value = dummyVisitors;
-      totalVisitors.value = visitors.length;
+      // Assuming you have a way to get the companyId
+      String companyId = "your_company_id"; // Replace with actual companyId
+      _apiService.getVisitors(companyId).listen((visitorList) {
+        visitors.assignAll(visitorList);
+        totalVisitors.value = visitorList.length;
+      });
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch visitors: $e');
     } finally {
       isLoading(false);
+    }
+  }
+
+  Future<void> handleQrScan(String qrData) async {
+    try {
+      final visitorData = await _apiService.getEnrichedVisitorIfAny(qrData);
+      if (visitorData != null) {
+        final status = visitorData['data']['status'];
+        if (status == 'IN') {
+          final success = await _apiService.manualCheckout(qrData);
+          if (success) {
+            Get.toNamed(adminAppRoutes.manualCheckoutComplete, arguments: {
+              'message': 'Checked Out',
+              'isCheckIn': false,
+            });
+          } else {
+            Get.snackbar('Error', 'Failed to check out visitor.');
+          }
+        } else {
+          final success = await _apiService.manualCheckin(qrData);
+          if (success) {
+            Get.toNamed(adminAppRoutes.manualCheckoutComplete, arguments: {
+              'message': 'Checked In',
+              'isCheckIn': true,
+            });
+          } else {
+            Get.snackbar('Error', 'Failed to check in visitor.');
+          }
+        }
+      } else {
+        Get.snackbar('Error', 'Visitor not found.');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'An error occurred: $e');
     }
   }
 

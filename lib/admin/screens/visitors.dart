@@ -56,7 +56,7 @@ class VisitorsScreen extends StatelessWidget {
                   SizedBox(height: isTabletOrWeb ? 24 : 16),
 
                   // Action Buttons
-                  _buildActionButtons(constraints, mainController),
+                  _buildActionButtons(constraints, controller, mainController),
                   SizedBox(height: isTabletOrWeb ? 24 : 16),
 
                   const SizedBox(height: 24),
@@ -71,8 +71,8 @@ class VisitorsScreen extends StatelessWidget {
     });
   }
 
-  Widget _buildActionButtons(
-      BoxConstraints constraints, MainController mainController) {
+  Widget _buildActionButtons(BoxConstraints constraints,
+      VisitorsController controller, MainController mainController) {
     final isTabletOrWeb = constraints.maxWidth >= 768;
     return Obx(() {
       final isDarkMode = mainController.isDarkMode.value;
@@ -141,7 +141,12 @@ class VisitorsScreen extends StatelessWidget {
                 color: isDarkMode ? adminAppColors.secondary : Colors.black,
               ),
               isTabletOrWeb,
-              () {},
+              () async {
+                final qrData = await Get.toNamed(adminAppRoutes.qrScanner);
+                if (qrData != null) {
+                  controller.handleQrScan(qrData);
+                }
+              },
               mainController,
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:synctrackr/admin/controllers/setting_account_controller.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:synctrackr/admin/utils/colors.dart';
+import 'package:synctrackr/admin/utils/images.dart';
 import 'package:synctrackr/admin/widgets/notification_bar.dart';
 import 'package:synctrackr/admin/services/api_services.dart';
 import 'package:synctrackr/admin/config/session_manager.dart';
@@ -331,353 +332,352 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: SingleChildScrollView(
-            child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Obx(() {
-                  final isDarkMode = mainController.isDarkMode.value;
-
-                  // Show loading state
-                  if (isLoading) {
-                    return Container(
-                      width: double.infinity,
-                      height: 400,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: isDarkMode
-                                ? adminAppColors.secondary
-                                : adminAppColors.primary),
+    return SingleChildScrollView(
+        child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Obx(() {
+              final isDarkMode = mainController.isDarkMode.value;
+    
+              // Show loading state
+              if (isLoading) {
+                return Container(
+                  width: double.infinity,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
                         color: isDarkMode
-                            ? adminAppColors.darkMainBackground
-                            : adminAppColors.background,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isDarkMode
-                                    ? adminAppColors.primary
-                                    : Color(0xFF4C6FFF),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Loading company details...',
-                              style: GoogleFonts.lexend(
-                                color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  // Show error state
-                  if (errorMessage != null) {
-                    return Container(
-                      width: double.infinity,
-                      height: 400,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: isDarkMode
-                                ? adminAppColors.secondary
-                                : adminAppColors.primary),
-                        color: isDarkMode
-                            ? adminAppColors.darkMainBackground
-                            : adminAppColors.background,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.red.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error Loading Data',
-                              style: GoogleFonts.lexend(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lexend(
-                                color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            // Retry button removed as per request
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Container(
-                    width: double.infinity,
-                    // margin: const EdgeInsets.symmetric(vertical: 40),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: isDarkMode
-                              ? adminAppColors.secondary
-                              : adminAppColors.primary),
-                      color: isDarkMode
-                          ? adminAppColors.darkMainBackground
-                          : adminAppColors.background,
-                    ),
+                            ? adminAppColors.secondary
+                            : adminAppColors.primary),
+                    color: isDarkMode
+                        ? adminAppColors.darkMainBackground
+                        : adminAppColors.background,
+                  ),
+                  child: Center(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Account Information Container
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Account information",
-                                style: GoogleFonts.lexend(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Color(0xFF212529)),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Update your logo and account details here",
-                                style: GoogleFonts.lexend(
-                                    color: isDarkMode
-                                        ? Colors.white70
-                                        : Colors.grey.shade600),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Text(
-                                    "Your Logo",
-                                    style: GoogleFonts.lexend(
-                                        fontWeight: FontWeight.w500,
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : Color(0xFF212529)),
-                                  ),
-                                  if (uploadedLogoUrl != null) ...[
-                                    const SizedBox(width: 16),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: isDarkMode
-                                              ? adminAppColors.secondary
-                                              : Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(
-                                          uploadedLogoUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.business,
-                                              color: isDarkMode
-                                                  ? Colors.white70
-                                                  : Colors.grey.shade400,
-                                              size: 20,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "This will be displayed on your profile",
-                                style: GoogleFonts.lexend(
-                                    color: isDarkMode
-                                        ? Colors.white70
-                                        : Colors.grey.shade600,
-                                    fontSize: 12),
-                              ),
-                              const SizedBox(height: 8),
-                              DottedBorderBox(
-                                onTap: () async {
-                                  final result = await FilePicker.platform.pickFiles(
-                                    type: FileType.image,
-                                    allowMultiple: false,
-                                  );
-                                  if (result != null && result.files.isNotEmpty) {
-                                    final filePath = result.files.first.path;
-                                    if (filePath != null) {
-                                      await uploadLogo(filePath);
-                                    }
-                                  }
-                                },
-                                selectedFile: controller.selectedFile,
-                              ),
-                              const SizedBox(height: 16),
-                              buildEditableTextField(
-                                "Name",
-                                controller.nameController,
-                                hintText: "Company pvt. ltd.",
-                                isEditable: isNameEditable,
-                                onEditToggle: () => setState(() => isNameEditable = !isNameEditable),
-                              ),
-                              const SizedBox(height: 16),
-                              buildEditableTextField(
-                                "Email Id",
-                                controller.emailController,
-                                hintText: "admin@company.com",
-                                isEditable: isEmailEditable,
-                                onEditToggle: () => setState(() => isEmailEditable = !isEmailEditable),
-                              ),
-                              const SizedBox(height: 16),
-                              buildEditablePhoneField(
-                                "Phone Number",
-                                controller.phoneController,
-                                hintText: "9811234567",
-                                isEditable: isPhoneEditable,
-                                onEditToggle: () => setState(() => isPhoneEditable = !isPhoneEditable),
-                              ),
-                            ],
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isDarkMode
+                                ? adminAppColors.primary
+                                : Color(0xFF4C6FFF),
                           ),
                         ),
-
-                        const Divider(color: Color(0xFFE9ECEF), height: 1),
-
-                        // Security Container
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Security",
-                                style: GoogleFonts.lexend(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Color(0xFF212529)),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Manage preferences securely",
-                                style: GoogleFonts.lexend(
-                                    color: isDarkMode
-                                        ? Colors.white70
-                                        : Colors.grey.shade600),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildSecurityItem(
-                                "Password",
-                                "Change Password",
-                                Icons.lock_outline,
-                                () {},
-                              ),
-                              const SizedBox(height: 16),
-                              _buildSecurityItem(
-                                "Manage Logged Devices",
-                                "View all active login",
-                                null,
-                                () {},
-                              ),
-                              const SizedBox(height: 16),
-                              _buildToggleItem(
-                                "Two-Factor Authentication (2FA)",
-                                "Extra security via OTP/mail",
-                                controller.twoFA,
-                                controller.toggle2FA,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildToggleItem(
-                                "Login Alerts",
-                                "Notify on new/unfamiliar logins",
-                                controller.loginAlerts,
-                                controller.toggleLoginAlerts,
-                              ),
-                            ],
+                        const SizedBox(height: 16),
+                        Text(
+                          'Loading company details...',
+                          style: GoogleFonts.lexend(
+                            color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
                           ),
                         ),
-
-                        const Divider(color: Color(0xFFE9ECEF), height: 1),
-
-                        // Buttons Container
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              OutlinedButton(
-                                onPressed: () {
-                                  // Reset all edit states to non-editable (show pencil icons)
-                                  setState(() {
-                                    isNameEditable = false;
-                                    isEmailEditable = false;
-                                    isPhoneEditable = false;
-                                  });
-                                  // Reload original data
-                                  loadCompanyData();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF212529),
-                                  side: const BorderSide(
-                                      color: Color(0xFFADB5BD)),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 16),
-                                ),
-                                child: Text(
-                                  "Lock Fields",
-                                  style: GoogleFonts.lexend(
-                                      color: isDarkMode
-                                          ? Colors.white
-                                          : Colors.black),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: saveCompanyChanges,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isDarkMode
-                                      ? adminAppColors.darkMainButton
-                                      : Color(0xFF4C6FFF),
-                                  foregroundColor:
-                                      isDarkMode ? Colors.black : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 16),
-                                ),
-                                child: Text("Save Changes",style: GoogleFonts.lexend()),
-                              ),
-                            ],
-                          ),
-                        )
                       ],
                     ),
-                  );
-                }))));
+                  ),
+                );
+              }
+    
+              // Show error state
+              if (errorMessage != null) {
+                return Container(
+                  width: double.infinity,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: isDarkMode
+                            ? adminAppColors.secondary
+                            : adminAppColors.primary),
+                    color: isDarkMode
+                        ? adminAppColors.darkMainBackground
+                        : adminAppColors.background,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error Loading Data',
+                          style: GoogleFonts.lexend(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lexend(
+                            color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Retry button removed as per request
+                      ],
+                    ),
+                  ),
+                );
+              }
+    
+              return Container(
+                width: double.infinity,
+                // margin: const EdgeInsets.symmetric(vertical: 40),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: isDarkMode
+                          ? adminAppColors.secondary
+                          : adminAppColors.primary),
+                  color: isDarkMode
+                      ? adminAppColors.darkMainBackground
+                      : adminAppColors.background,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Account Information Container
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Account information",
+                            style: GoogleFonts.lexend(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Color(0xFF212529)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Update your logo and account details here",
+                            style: GoogleFonts.lexend(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Text(
+                                "Your Logo",
+                                style: GoogleFonts.lexend(
+                                    fontWeight: FontWeight.w500,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Color(0xFF212529)),
+                              ),
+                              if (uploadedLogoUrl != null) ...[
+                                const SizedBox(width: 16),
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isDarkMode
+                                          ? adminAppColors.secondary
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Image.network(
+                                      uploadedLogoUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.business,
+                                          color: isDarkMode
+                                              ? Colors.white70
+                                              : Colors.grey.shade400,
+                                          size: 20,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "This will be displayed on your profile",
+                            style: GoogleFonts.lexend(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey.shade600,
+                                fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          DottedBorderBox(
+                            onTap: () async {
+                              final result = await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                allowMultiple: false,
+                              );
+                              if (result != null && result.files.isNotEmpty) {
+                                final filePath = result.files.first.path;
+                                if (filePath != null) {
+                                  await uploadLogo(filePath);
+                                }
+                              }
+                            },
+                            selectedFile: controller.selectedFile,
+                          ),
+                          const SizedBox(height: 16),
+                          buildEditableTextField(
+                            "Name",
+                            controller.nameController,
+                            hintText: "Company pvt. ltd.",
+                            isEditable: isNameEditable,
+                            onEditToggle: () => setState(() => isNameEditable = !isNameEditable),
+                          ),
+                          const SizedBox(height: 16),
+                          buildEditableTextField(
+                            "Email Id",
+                            controller.emailController,
+                            hintText: "admin@company.com",
+                            isEditable: isEmailEditable,
+                            onEditToggle: () => setState(() => isEmailEditable = !isEmailEditable),
+                          ),
+                          const SizedBox(height: 16),
+                          buildEditablePhoneField(
+                            "Phone Number",
+                            controller.phoneController,
+                            hintText: "9811234567",
+                            isEditable: isPhoneEditable,
+                            onEditToggle: () => setState(() => isPhoneEditable = !isPhoneEditable),
+                          ),
+                        ],
+                      ),
+                    ),
+    
+                    const Divider(color: Color(0xFFE9ECEF), height: 1),
+    
+                    // Security Container
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Security",
+                            style: GoogleFonts.lexend(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : Color(0xFF212529)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Manage preferences securely",
+                            style: GoogleFonts.lexend(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSecurityItem(
+                            "Password",
+                            "Change Password",
+                            Icons.lock_outline,
+                            () {},
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSecurityItem(
+                            "Manage Logged Devices",
+                            "View all active login",
+                            null,
+                            () {},
+                          ),
+                          const SizedBox(height: 16),
+                          _buildToggleItem(
+                            "Two-Factor Authentication (2FA)",
+                            "Extra security via OTP/mail",
+                            controller.twoFA,
+                            controller.toggle2FA,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildToggleItem(
+                            "Login Alerts",
+                            "Notify on new/unfamiliar logins",
+                            controller.loginAlerts,
+                            controller.toggleLoginAlerts,
+                          ),
+                        ],
+                      ),
+                    ),
+    
+                    const Divider(color: Color(0xFFE9ECEF), height: 1),
+    
+                    // Buttons Container
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () {
+                              // Reset all edit states to non-editable (show pencil icons)
+                              setState(() {
+                                isNameEditable = false;
+                                isEmailEditable = false;
+                                isPhoneEditable = false;
+                              });
+                              // Reload original data
+                              loadCompanyData();
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF212529),
+                              side: const BorderSide(
+                                  color: Color(0xFFADB5BD)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
+                            ),
+                            child: Text(
+                              "Cancel",
+                              style: GoogleFonts.lexend(
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: saveCompanyChanges,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDarkMode
+                                  ? adminAppColors.darkMainButton
+                                  : Color(0xFF4C6FFF),
+                              foregroundColor:
+                                  isDarkMode ? Colors.black : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
+                            ),
+                            child: Text("Save Changes",style: GoogleFonts.lexend()),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              );
+            })));
   }
 
   Widget _buildSecurityItem(
@@ -752,7 +752,7 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
             onChanged: onChanged,
             activeColor: Colors.white,
             activeTrackColor: const Color(0xFF4C6FFF),
-            inactiveTrackColor: const Color(0xFFADB5BD),
+            inactiveTrackColor:isDarkMode?Colors.black12: const Color(0xFFADB5BD),
             inactiveThumbColor: Colors.white,
           ),
         ),
@@ -1229,10 +1229,10 @@ class DottedBorderBox extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.cloud_upload_outlined,
+                      ImageIcon(
+                        const AssetImage(AllImages.bulkUploadIcon),
                         size: 32,
-                        color: Color(0xFFADB5BD),
+                        color: isDarkMode? adminAppColors.secondary:adminAppColors.primary,
                       ),
                       const SizedBox(height: 8),
                       RichText(

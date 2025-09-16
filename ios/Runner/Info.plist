@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan QR codes</string>
 	<!-- Permissions for file access and sharing -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to your photo library to save and share files.</string>
