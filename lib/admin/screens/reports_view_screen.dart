@@ -27,12 +27,17 @@ class ReportsViewScreen extends StatelessWidget {
     return '8940'; // Fallback to static value
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final MainController mainController = Get.find<MainController>();
     final ReportsViewController reportsViewController =
         Get.put(ReportsViewController());
     final isDarkMode = mainController.isDarkMode.value;
+
+
+
     return CustomScrollView(
       slivers: [
         SliverAppBar(

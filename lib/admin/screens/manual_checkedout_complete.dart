@@ -177,15 +177,15 @@ class _ManualCheckOutScreenState extends State<ManualCheckOutScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Row(
+                          child:  Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Exit "),
+                              Text("Exit ",style: TextStyle(color: isDark? Colors.black:Colors.white),),
                               SizedBox(width: 6),
                               Icon(
                                 Icons.arrow_forward,
                                 size: 18,
-                                color: Colors.white,
+                                color: isDark? Colors.black: Colors.white,
                               ),
                             ],
                           ),

@@ -59,7 +59,7 @@ class VisitorsScreen extends StatelessWidget {
                   _buildActionButtons(constraints, controller, mainController),
                   SizedBox(height: isTabletOrWeb ? 24 : 16),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
 
                   EmployeeList()
                 ],

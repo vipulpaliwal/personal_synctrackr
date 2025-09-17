@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialRoute:  adminRoutes.adminAppRoutes.main,
+      home: _SessionGate(),
       getPages: [
         ...RouteGenerator.getRoutes(),
         ...adminRoutes.adminAppRoutes.routes,
@@ -35,38 +35,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// class _SessionGate extends StatefulWidget {
-//   const _SessionGate({Key? key}) : super(key: key);
+class _SessionGate extends StatefulWidget {
+  const _SessionGate({Key? key}) : super(key: key);
 
-//   @override
-//   State<_SessionGate> createState() => _SessionGateState();
-// }
+  @override
+  State<_SessionGate> createState() => _SessionGateState();
+}
 
-// class _SessionGateState extends State<_SessionGate> {
-//   @override
-//   void initState() {
-//     super.initState();
-//     _decideStartDestination();
-//   }
+class _SessionGateState extends State<_SessionGate> {
+  @override
+  void initState() {
+    super.initState();
+    _decideStartDestination();
+  }
 
-//   Future<void> _decideStartDestination() async {
-//     try {
-//       final isLoggedIn = await SessionManager.isLoggedIn();
+  Future<void> _decideStartDestination() async {
+    try {
+      final isLoggedIn = await SessionManager.isLoggedIn();
 
-//       if (isLoggedIn) {
-//         Get.offAll(() => const MainScreen());
-//       } else {
-//         Get.offAll(() => AdminLoginScreen());
-//       }
-//     } catch (_) {
-//       Get.offAll(() => AdminLoginScreen());
-//     }
-//   }
+      if (isLoggedIn) {
+        Get.offAll(() => const MainScreen());
+      } else {
+        Get.offAll(() => AdminLoginScreen());
+      }
+    } catch (_) {
+      Get.offAll(() => AdminLoginScreen());
+    }
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Scaffold(
-//       body: Center(child: CircularProgressIndicator()),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}

@@ -26,7 +26,7 @@ class MainScreen extends StatelessWidget {
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
         scaffoldBackgroundColor: isDarkMode
             ? adminAppColors.darkSidebar
-            : adminAppColors.mainBackground,
+            : Color(0xffE5ECF5),
         primaryColor:
             isDarkMode ? adminAppColors.darkPrimary : adminAppColors.primary,
       );
@@ -47,15 +47,15 @@ class MainScreen extends StatelessWidget {
                         color: isDarkMode
                             ? adminAppColors.darkSidebar
                                 .withOpacity(0.9) // Dark overlay
-                            : Colors.white.withOpacity(
-                                0.7), // Light overlay - increased opacity
+                            : Color(0xffF8FAFD).withOpacity(
+                                0.9), // Light overlay - increased opacity
                       ),
                     ),
 
                     /// Background Image
                     Positioned.fill(
                       child: Opacity(
-                        opacity: isDarkMode ? 0.5 : 0.3,
+                        opacity: isDarkMode ? 0.5 : 0.4,
                         child: Image.asset(
                           AllImages.mainbg,
                           fit: BoxFit.fill,
