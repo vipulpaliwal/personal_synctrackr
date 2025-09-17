@@ -31,7 +31,6 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
   bool isPhoneEditable = false;
 
   // Loading and error states
-  bool isLoading = true;
   bool isSaving = false;
   String? errorMessage;
 
@@ -57,7 +56,6 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
 
     if (isRetry) {
       setState(() {
-        isLoading = true;
         errorMessage = null;
       });
     }
@@ -68,7 +66,6 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
         if (companyData == null) {
           setState(() {
             errorMessage = 'Company ID not found. Please log in again.';
-            isLoading = false;
           });
         }
         return;
@@ -82,20 +79,12 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
       } else if (companyData == null) {
         setState(() {
           errorMessage = result['message'] ?? 'Failed to load company data';
-          isLoading = false;
         });
       }
     } catch (e) {
       if (companyData == null) {
         setState(() {
           errorMessage = 'Network error: ${e.toString()}';
-          isLoading = false;
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
         });
       }
     }
@@ -108,7 +97,6 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
       setState(() {
         companyData = json.decode(cachedData);
         _populateFields(companyData!);
-        isLoading = false; // Show cached data immediately
       });
     }
   }
@@ -161,7 +149,7 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
 
     // Validate company name
     if (companyName.isEmpty) {
-      Get.snackbar(
+      Get.snackbar(snackPosition: P,
         'Validation Error',
         'Company name cannot be empty',
         backgroundColor: Colors.orange,
@@ -337,45 +325,6 @@ class _SettingsAccountViewState extends State<SettingsAccountView> {
             padding: const EdgeInsets.all(20.0),
             child: Obx(() {
               final isDarkMode = mainController.isDarkMode.value;
-    
-              // Show loading state
-              if (isLoading) {
-                return Container(
-                  width: double.infinity,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: isDarkMode
-                            ? adminAppColors.secondary
-                            : adminAppColors.primary),
-                    color: isDarkMode
-                        ? adminAppColors.darkMainBackground
-                        : adminAppColors.background,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isDarkMode
-                                ? adminAppColors.primary
-                                : Color(0xFF4C6FFF),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Loading company details...',
-                          style: GoogleFonts.lexend(
-                            color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
     
               // Show error state
               if (errorMessage != null) {
